@@ -1,0 +1,123 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --apple-blue: #0071E3;
+  --apple-blue-hover: #0077ED;
+  --apple-blue-light: #E8F1FB;
+  --apple-gray-bg: #F5F5F7;
+  --apple-border: #D2D2D7;
+  --apple-text-primary: #1D1D1F;
+  --apple-text-secondary: #6E6E73;
+  --apple-text-tertiary: #86868B;
+  --apple-surface: #FFFFFF;
+  --apple-sidebar-bg: #FAFAFA;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.05);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', sans-serif;
+  background-color: var(--apple-gray-bg);
+  color: var(--apple-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Toast slide-in ─────────────────────────────────────────── */
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0)   scale(1);    }
+}
+@keyframes toastOut {
+  from { opacity: 1; transform: translateY(0)   scale(1);    }
+  to   { opacity: 0; transform: translateY(8px) scale(0.96); }
+}
+.toast-enter { animation: toastIn  0.28s cubic-bezier(0.34,1.56,0.64,1) both; }
+.toast-exit  { animation: toastOut 0.22s ease-in both; }
+
+/* ── Mobile sidebar drawer ──────────────────────────────────── */
+@media (max-width: 720px) {
+  .sidebar-panel {
+    position: fixed !important;
+    top: 52px !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 85vw !important;
+    max-width: 340px !important;
+    border-radius: 0 18px 18px 0 !important;
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 4px 0 24px rgba(0,0,0,0.14) !important;
+  }
+  .sidebar-panel.open {
+    transform: translateX(0);
+  }
+  .sidebar-overlay {
+    display: block !important;
+  }
+  .layout-panels {
+    padding: 10px !important;
+    gap: 0 !important;
+  }
+  .chat-panel {
+    border-radius: 14px !important;
+  }
+}
+
+/* Custom scrollbar — thin, macOS-style */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--apple-border);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #b0b0b8;
+}
+
+/* Smooth focus ring */
+*:focus-visible {
+  outline: 2px solid var(--apple-blue);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Typing indicator dots animation */
+@keyframes blink {
+  0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+  40%           { opacity: 1;   transform: scale(1);   }
+}
+.dot-1 { animation: blink 1.4s infinite ease-in-out; animation-delay: 0s; }
+.dot-2 { animation: blink 1.4s infinite ease-in-out; animation-delay: 0.2s; }
+.dot-3 { animation: blink 1.4s infinite ease-in-out; animation-delay: 0.4s; }
+
+/* Message bubble entrance */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+.msg-enter {
+  animation: slideUp 0.25s ease-out both;
+}
+
+/* Card hover lift */
+@keyframes cardHover {
+  to { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+}
