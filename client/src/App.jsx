@@ -448,8 +448,27 @@ export default function App() {
 
   const [activePersonaId, setActivePersonaId] = useState('architect');
 
+  const [stats, setStats] = useState({ totalMemories: 0, queriesToday: 0, decisionsSaved: 0, lastActive: null });
+
   const chatEndRef = useRef(null);
   const inputRef   = useRef(null);
+
+  /* ── fetch stats ── */
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await fetch('/api/stats');
+      const data = await res.json();
+      setStats(data);
+    } catch (err) {
+      console.error('Failed to fetch stats:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchStats();
+    const interval = setInterval(fetchStats, 30000);
+    return () => clearInterval(interval);
+  }, [fetchStats]);
 
   /* ── fetch memories ── */
   const fetchMemories = useCallback(async () => {
@@ -635,16 +654,41 @@ export default function App() {
 
       {/* ── Top bar ─────────────────────────────────────────────────────── */}
       <header style={{
-        height: 52,
         background: 'rgba(255,255,255,0.90)',
         backdropFilter: 'blur(20px) saturate(180%)',
         WebkitBackdropFilter: 'blur(20px) saturate(180%)',
         borderBottom: '1px solid rgba(0,0,0,0.08)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 18px',
+        display: 'flex', flexDirection: 'column',
         position: 'sticky', top: 0, zIndex: 100, flexShrink: 0,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        {/* Stats Bar */}
+        <div style={{
+          display: 'flex', gap: 12, overflowX: 'auto', padding: '10px 18px',
+          borderBottom: '1px solid #F2F2F7', background: '#FAFAFA'
+        }}>
+          {[
+            { label: 'Total Memories', value: stats.totalMemories, emoji: '🧠' },
+            { label: 'Queries Today', value: stats.queriesToday, emoji: '🔍' },
+            { label: 'Decisions Saved', value: stats.decisionsSaved, emoji: '💾' },
+            { label: 'Last Active', value: stats.lastActive ? new Date(stats.lastActive).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Never', emoji: '⚡' }
+          ].map((stat, i) => (
+            <div key={i} style={{
+              flex: 1, minWidth: 160, display: 'flex', alignItems: 'center', gap: 10,
+              background: '#fff', padding: '10px 14px', borderRadius: 10,
+              border: '1px solid #E5E5EA', boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+            }}>
+              <span style={{ fontSize: 18 }}>{stat.emoji}</span>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: 11, color: '#86868B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{stat.label}</span>
+                <span style={{ fontSize: 16, fontWeight: 700, color: '#0071E3' }}>{stat.value}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Brand Bar */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 18px', height: 52 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {/* Mobile: hamburger to toggle sidebar */}
           <button
             id="sidebar-toggle-btn"
@@ -688,6 +732,7 @@ export default function App() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#34C759' }} />
           <span style={{ fontSize: 12, color: '#6E6E73', fontWeight: 400 }}>System online</span>
+          </div>
         </div>
       </header>
 

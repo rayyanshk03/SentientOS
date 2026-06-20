@@ -8,6 +8,8 @@ const { runAgent } = require('./agent');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+const globalStats = { queriesToday: 0, decisionsSaved: 0, lastActive: null };
+
 // ── Global Middleware ────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
@@ -35,6 +37,9 @@ app.all('/api/agent', async (req, res) => {
   if (!task) {
     return res.status(400).json({ error: 'task is required' });
   }
+
+  globalStats.queriesToday++;
+  globalStats.lastActive = new Date().toISOString();
 
   // Set SSE Headers
   res.setHeader('Content-Type', 'text/event-stream');
@@ -64,6 +69,20 @@ app.all('/api/agent', async (req, res) => {
   }
 });
 
+// ── GET /api/stats ───────────────────────────────────────────
+app.get('/api/stats', async (_req, res) => {
+  try {
+    const memories = await listRecentMemories(1000);
+    res.json({
+      ...globalStats,
+      totalMemories: memories.length,
+    });
+  } catch (err) {
+    console.error('[Server] GET /api/stats error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── GET /api/memories ────────────────────────────────────────
 // Returns the 10 most recent Parcle memories
 app.get('/api/memories', async (_req, res) => {
@@ -89,6 +108,7 @@ app.post('/api/memory', async (req, res) => {
     if (!sessionId) {
       return res.status(502).json({ error: 'Failed to save memory to Parcle' });
     }
+    globalStats.decisionsSaved++;
     res.json({ success: true, session_id: sessionId });
   } catch (err) {
     console.error('[Server] POST /api/memory error:', err.message);
