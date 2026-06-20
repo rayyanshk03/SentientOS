@@ -13,8 +13,14 @@ require('dotenv').config({ path: '../.env' });
 const { GoogleGenAI } = require('@google/genai');
 const { queryMemory, saveMemory } = require('./parcle');
 
-// ── Init Gemini Client ──────────────────────────────────────
-const MODEL_ID = 'gemini-3.5-flash';
+// ── Gemini Models Configuration ──────────────────────────────
+const FALLBACK_MODELS = [
+  'gemini-2.5-flash-lite',
+  'gemini-3.5-flash',
+  'gemini-2.5-flash',
+  'gemini-2.0-flash',
+  'gemini-2.5-pro'
+];
 
 function createGenAI() {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -105,20 +111,30 @@ async function runAgent(userTask) {
 
   console.log('[Agent] Prompt built with', parcleMemories.length, 'memory context(s).');
 
-  // ── Step 3: Call Gemini API ───────────────────────────────
-  console.log(`\n[Agent] Step 3 — Calling Gemini (${MODEL_ID})...`);
+  // ── Step 3: Call Gemini API (with fallbacks) ──────────────
   let agentResponse = '';
-  try {
-    const ai = createGenAI();
-    const result = await ai.models.generateContent({
-      model: MODEL_ID,
-      contents: systemPrompt,
-    });
-    agentResponse = result.text ?? '';
-    console.log(`[Agent] ✅ Gemini response received (${agentResponse.length} chars).`);
-  } catch (err) {
-    console.error('[Agent] ❌ Gemini API call failed:', err.message);
-    throw new Error(`Agent LLM call failed: ${err.message}`);
+  let successfulModel = '';
+  const ai = createGenAI();
+  
+  for (const model of FALLBACK_MODELS) {
+    console.log(`\n[Agent] Step 3 — Calling Gemini using model: ${model}...`);
+    try {
+      const result = await ai.models.generateContent({
+        model: model,
+        contents: systemPrompt,
+      });
+      agentResponse = result.text ?? '';
+      successfulModel = model;
+      console.log(`[Agent] ✅ Gemini response received (${agentResponse.length} chars) using ${model}.`);
+      break;
+    } catch (err) {
+      console.warn(`[Agent] ⚠️ Model ${model} failed:`, err.message);
+    }
+  }
+
+  if (!agentResponse) {
+    console.error('[Agent] ❌ All fallback Gemini models failed.');
+    throw new Error('Agent LLM call failed: All fallback models are unavailable or rate-limited.');
   }
 
   // ── Step 4: Save decision to Parcle ──────────────────────
