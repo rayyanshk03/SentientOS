@@ -26,10 +26,12 @@ app.get('/api/health', (_req, res) => {
 });
 
 // ── ALL /api/agent ───────────────────────────────────────────
-// GET (query) or POST (body): { task: string }
+// GET (query) or POST (body): { task: string, persona: string }
 // Runs the full agent loop and streams progress via SSE
 app.all('/api/agent', async (req, res) => {
   const task = req.method === 'GET' ? req.query.task : req.body.task;
+  const persona = req.method === 'GET' ? req.query.persona : req.body.persona;
+
   if (!task) {
     return res.status(400).json({ error: 'task is required' });
   }
@@ -46,7 +48,7 @@ app.all('/api/agent', async (req, res) => {
   };
 
   try {
-    const result = await runAgent(task, (stepMsg) => {
+    const result = await runAgent(task, persona, (stepMsg) => {
       sendEvent('step', stepMsg);
     });
     sendEvent('done', {

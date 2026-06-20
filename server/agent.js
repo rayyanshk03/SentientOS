@@ -35,6 +35,7 @@ function createGenAI() {
  * Runs the full agent loop for a given user task.
  *
  * @param {string} userTask - The task or question from the user.
+ * @param {string} [persona] - The requested persona ID.
  * @param {Function} [onStep] - Optional callback to stream progress steps.
  * @returns {Promise<{
  *   response: string,
@@ -42,7 +43,7 @@ function createGenAI() {
  *   retrievedMemories: Array<{ title: string, confidence: number, citationIds: string[] }>
  * }>}
  */
-async function runAgent(userTask, onStep) {
+async function runAgent(userTask, persona = 'architect', onStep) {
   console.log('\n═══════════════════════════════════════════');
   console.log(`[Agent] 🚀 runAgent started`);
   console.log(`[Agent] 📝 Task: "${userTask}"`);
@@ -86,8 +87,17 @@ async function runAgent(userTask, onStep) {
       .join('\n\n');
   }
 
+  const PERSONA_PROMPTS = {
+    architect: "You are a senior software architect focused on long-term design patterns, scalability, and robust system architecture.",
+    debugger: "You are an expert debugger. Analyze systematically, find root causes, and provide fixes for complex bugs.",
+    docs: "You are a technical writer. Be clear, concise, structured, and focus on writing documentation and README updates.",
+    ui: "You are a UI/UX engineer. Prioritize consistency, design rules, modern aesthetics, and user experience.",
+  };
+
+  const personaPrompt = PERSONA_PROMPTS[persona] || PERSONA_PROMPTS['architect'];
+
   const systemPrompt = [
-    'You are Eternal Architect — a helpful AI assistant and senior software architect for the SentientOS project.',
+    personaPrompt,
     '',
     'CONTEXT FROM MEMORY:',
     memorySummary,
@@ -151,8 +161,8 @@ async function runAgent(userTask, onStep) {
   let sessionId = null;
   try {
     sessionId = await saveMemory(decisionTitle, agentResponse, [
-      'type:decision',
-      'project:eternal-architect',
+      persona || 'architect',
+      'decision',
       `date:${today}`,
     ]);
     console.log(`[Agent] ✅ Decision saved to Parcle → session_id=${sessionId}`);

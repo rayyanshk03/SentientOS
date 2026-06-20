@@ -1,5 +1,12 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 
+const PERSONAS = [
+  { id: 'architect', label: 'Eternal Architect', emoji: '🏛️', subtitle: 'AI-powered system orchestrator' },
+  { id: 'debugger', label: 'Zero-Sync Debugger', emoji: '🐛', subtitle: 'Finds and fixes complex bugs' },
+  { id: 'docs', label: 'Docs Writer', emoji: '📝', subtitle: 'Writes documentation & READMEs' },
+  { id: 'ui', label: 'UI Enforcer', emoji: '🎨', subtitle: 'Focuses on design consistency' }
+];
+
 /* ─── tiny helpers ─────────────────────────────────────────────────────────── */
 
 function formatDate(raw) {
@@ -439,6 +446,8 @@ export default function App() {
   const [currentTagInput, setCurrentTagInput] = useState('');
   const [isSavingDecision, setIsSavingDecision] = useState(false);
 
+  const [activePersonaId, setActivePersonaId] = useState('architect');
+
   const chatEndRef = useRef(null);
   const inputRef   = useRef(null);
 
@@ -513,7 +522,7 @@ export default function App() {
     setSidebarOpen(false); // close drawer on mobile when sending
 
     const encodedTask = encodeURIComponent(task);
-    const eventSource = new EventSource(`/api/agent?task=${encodedTask}`);
+    const eventSource = new EventSource(`/api/agent?task=${encodedTask}&persona=${activePersonaId}`);
 
     eventSource.addEventListener('step', (e) => {
       setStatusFeed(e.data);
@@ -985,20 +994,33 @@ export default function App() {
               background: 'linear-gradient(135deg, #0071E3 0%, #34aadc 100%)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: '0 3px 10px rgba(0,113,227,0.35)',
+              fontSize: 20
             }}>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M10 2L12.5 7H18L13.5 10.5L15.5 16.5L10 13L4.5 16.5L6.5 10.5L2 7H7.5L10 2Z"
-                  fill="white" strokeLinejoin="round" />
-              </svg>
+              {PERSONAS.find(p => p.id === activePersonaId)?.emoji}
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <h1 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#1D1D1F', letterSpacing: '-0.02em' }}>
-                Eternal Architect
-              </h1>
-              <p style={{ margin: '1px 0 0', fontSize: 12, color: '#86868B', fontWeight: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-start' }}>
+              <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+                <select
+                  value={activePersonaId}
+                  onChange={e => setActivePersonaId(e.target.value)}
+                  style={{
+                    appearance: 'none', background: 'transparent', border: 'none',
+                    fontSize: 16, fontWeight: 700, color: '#1D1D1F', letterSpacing: '-0.02em',
+                    padding: '0 16px 0 0', margin: 0, cursor: 'pointer', outline: 'none'
+                  }}
+                >
+                  {PERSONAS.map(p => (
+                    <option key={p.id} value={p.id}>{p.label}</option>
+                  ))}
+                </select>
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+                  <path d="M2.5 3.5L5 6L7.5 3.5" stroke="#1D1D1F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <p style={{ margin: 0, fontSize: 12, color: '#86868B', fontWeight: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {isThinking
                   ? <span style={{ color: '#0071E3', fontWeight: 500 }}>Thinking + querying memory…</span>
-                  : 'AI-powered system orchestrator · Powered by Gemini'
+                  : PERSONAS.find(p => p.id === activePersonaId)?.subtitle
                 }
               </p>
             </div>
