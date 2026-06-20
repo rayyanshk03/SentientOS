@@ -301,6 +301,72 @@ function MemoryCard({ memory }) {
   );
 }
 
+/* ─── SearchResultCard ──────────────────────────────────────────────────────── */
+function SearchResultCard({ result }) {
+  const [hovered, setHovered] = useState(false);
+  const preview = result.content
+    ? result.content.split('\n').filter(Boolean)[0]?.slice(0, 120) || 'No preview.'
+    : 'No preview.';
+  const confColor = result.confidence >= 70 ? '#34C759' : result.confidence >= 40 ? '#FF9500' : '#FF3B30';
+
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: '#fff', borderRadius: 14, padding: '13px 15px',
+        border: '1px solid', borderColor: hovered ? '#0071E3' : '#E5E5EA',
+        boxShadow: hovered ? '0 4px 14px rgba(0,113,227,0.12)' : '0 1px 3px rgba(0,0,0,0.06)',
+        transition: 'all 0.18s ease',
+        transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
+      }}
+    >
+      {/* Top row: type pill + confidence */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
+        <span style={{
+          fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em',
+          textTransform: 'uppercase', color: '#0071E3',
+          background: '#E8F1FB', padding: '2px 8px', borderRadius: 99,
+        }}>
+          search result
+        </span>
+        {/* Confidence badge */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          <div style={{ width: 36, height: 4, borderRadius: 99, background: '#E5E5EA', overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${result.confidence}%`, background: confColor, borderRadius: 99, transition: 'width 0.4s ease' }} />
+          </div>
+          <span style={{ fontSize: 10.5, color: '#86868B', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+            {result.confidence}%
+          </span>
+        </div>
+      </div>
+
+      {/* Title */}
+      <p style={{
+        margin: '0 0 5px', fontSize: 13.5, fontWeight: 600, color: '#1D1D1F',
+        lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+      }}>
+        {result.title}
+      </p>
+
+      {/* Content preview */}
+      <p style={{
+        margin: 0, fontSize: 12, color: '#6E6E73', lineHeight: 1.55,
+        display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+      }}>
+        {preview}
+      </p>
+
+      {/* Citation IDs */}
+      {result.citationIds?.length > 0 && (
+        <p style={{ margin: '6px 0 0', fontSize: 10.5, color: '#86868B', fontWeight: 400, fontVariantNumeric: 'tabular-nums' }}>
+          {result.citationIds.slice(0, 2).map(id => `ID: ${String(id).slice(0, 14)}…`).join(' · ')}
+        </p>
+      )}
+    </div>
+  );
+}
+
 /* ─── SidebarEmptyState ─────────────────────────────────────────────────────── */
 function SidebarEmptyState() {
   return (
@@ -348,8 +414,14 @@ function SidebarEmptyState() {
 export default function App() {
   const [memories, setMemories]           = useState([]);
   const [memoriesLoading, setMemoriesLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen]     = useState(false); // mobile drawer
-  const [toast, setToast]                 = useState(null);  // { id, message }
+  const [sidebarOpen, setSidebarOpen]     = useState(false);
+  const [toast, setToast]                 = useState(null);
+
+  // Search state
+  const [searchQuery, setSearchQuery]     = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching]     = useState(false);
+  const [searchDone, setSearchDone]       = useState(false); // true after a search completes
 
   const [messages, setMessages] = useState([{
     id: 'welcome',
@@ -377,6 +449,37 @@ export default function App() {
   }, []);
 
   useEffect(() => { fetchMemories(); }, [fetchMemories]);
+
+  /* ── debounced search ── */
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      // Cleared — go back to recent memories
+      setSearchResults([]);
+      setSearchDone(false);
+      fetchMemories();
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      setSearchDone(false);
+      try {
+        const res  = await fetch('/api/memories/search', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ query: searchQuery.trim() }),
+        });
+        const data = await res.json();
+        setSearchResults(data.results ?? []);
+        setSearchDone(true);
+      } catch {
+        setSearchResults([]);
+        setSearchDone(true);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchQuery, fetchMemories]);
 
   /* ── auto-scroll ── */
   useEffect(() => {
@@ -564,13 +667,17 @@ export default function App() {
                 Past Decisions
               </h2>
               <p style={{ margin: '2px 0 0', fontSize: 12, color: '#86868B', fontWeight: 400 }}>
-                {memoriesLoading ? 'Loading…' : `${memories.length} memories stored`}
+                {memoriesLoading || isSearching
+                  ? 'Searching…'
+                  : searchDone
+                    ? `${searchResults.length} ${searchResults.length === 1 ? 'memory' : 'memories'} found`
+                    : `${memories.length} memories stored`}
               </p>
             </div>
             <button
               id="refresh-memories-btn"
-              onClick={fetchMemories}
-              disabled={memoriesLoading}
+              onClick={() => { setSearchQuery(''); fetchMemories(); }}
+              disabled={memoriesLoading && !searchQuery}
               style={{
                 display: 'flex', alignItems: 'center', gap: 5,
                 padding: '6px 12px', borderRadius: 8, border: '1px solid',
@@ -592,24 +699,108 @@ export default function App() {
             </button>
           </div>
 
+          {/* Search input */}
+          <div style={{ padding: '10px 14px 2px', flexShrink: 0 }}>
+            <div style={{ position: 'relative' }}>
+              {/* Search icon */}
+              <svg
+                width="14" height="14" viewBox="0 0 14 14" fill="none"
+                style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
+              >
+                <circle cx="6" cy="6" r="4.5" stroke="#86868B" strokeWidth="1.4" />
+                <path d="M9.5 9.5l2.5 2.5" stroke="#86868B" strokeWidth="1.4" strokeLinecap="round" />
+              </svg>
+              <input
+                id="memory-search-input"
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Search past decisions…"
+                style={{
+                  width: '100%',
+                  padding: '8px 32px 8px 30px',
+                  borderRadius: 10,
+                  border: '1.5px solid',
+                  borderColor: searchQuery ? '#0071E3' : '#E5E5EA',
+                  boxShadow: searchQuery ? '0 0 0 3px rgba(0,113,227,0.10)' : 'none',
+                  fontSize: 13,
+                  fontFamily: 'inherit',
+                  color: '#1D1D1F',
+                  background: '#F5F5F7',
+                  outline: 'none',
+                  transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+                  boxSizing: 'border-box',
+                }}
+              />
+              {/* Clear button */}
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  style={{
+                    position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+                    background: '#D2D2D7', border: 'none', borderRadius: '50%',
+                    width: 16, height: 16, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    padding: 0,
+                  }}
+                  aria-label="Clear search"
+                >
+                  <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                    <path d="M1.5 1.5l5 5M6.5 1.5l-5 5" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
+
           {/* Memory list */}
           <div style={{
-            flex: 1, overflowY: 'auto', padding: '12px 14px',
+            flex: 1, overflowY: 'auto', padding: '10px 14px',
             display: 'flex', flexDirection: 'column', gap: 8,
           }}>
-            {memoriesLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
+            <style>{`@keyframes pulse{0%,100%{opacity:.55}50%{opacity:1}}`}</style>
+            {(memoriesLoading || isSearching) ? (
+              /* Skeleton cards */
+              Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} style={{
                   background: '#F5F5F7', borderRadius: 12,
                   padding: '14px 16px', border: '1px solid #F2F2F7',
                   animation: `pulse 1.6s ${i * 0.1}s ease-in-out infinite`,
                 }}>
-                  <style>{`@keyframes pulse{0%,100%{opacity:.55}50%{opacity:1}}`}</style>
                   <div style={{ height: 10, width: '40%', background: '#E5E5EA', borderRadius: 99, marginBottom: 8 }} />
                   <div style={{ height: 13, width: '75%', background: '#E5E5EA', borderRadius: 99, marginBottom: 6 }} />
                   <div style={{ height: 11, width: '90%', background: '#E5E5EA', borderRadius: 99 }} />
                 </div>
               ))
+            ) : searchDone && searchResults.length === 0 ? (
+              /* No results state */
+              <div style={{
+                flex: 1, display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center',
+                gap: 8, padding: '32px 20px', textAlign: 'center',
+              }}>
+                <div style={{
+                  width: 44, height: 44, borderRadius: 12,
+                  background: '#F5F5F7', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                    <circle cx="10" cy="10" r="7.5" stroke="#86868B" strokeWidth="1.4" />
+                    <path d="M16 16l3.5 3.5" stroke="#86868B" strokeWidth="1.4" strokeLinecap="round" />
+                    <path d="M7.5 10h5M10 7.5v5" stroke="#86868B" strokeWidth="1.4" strokeLinecap="round" opacity="0.4" />
+                  </svg>
+                </div>
+                <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#3A3A3C' }}>No results found</p>
+                <p style={{ margin: 0, fontSize: 12, color: '#86868B', lineHeight: 1.5 }}>
+                  Try different keywords or{' '}
+                  <button onClick={() => setSearchQuery('')}
+                    style={{ background: 'none', border: 'none', color: '#0071E3', cursor: 'pointer', fontSize: 12, fontWeight: 600, padding: 0, fontFamily: 'inherit' }}>
+                    view all memories
+                  </button>
+                </p>
+              </div>
+            ) : searchDone ? (
+              /* Search results */
+              searchResults.map((m, i) => <SearchResultCard key={m.id || i} result={m} />)
             ) : memories.length === 0 ? (
               <SidebarEmptyState />
             ) : (

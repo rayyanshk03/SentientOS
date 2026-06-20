@@ -78,6 +78,34 @@ app.post('/api/memory', async (req, res) => {
   }
 });
 
+// ── POST /api/memories/search ────────────────────────────────
+// Body: { query: string }
+// Semantic search over Parcle — returns up to 5 result cards
+app.post('/api/memories/search', async (req, res) => {
+  const { query } = req.body;
+  if (!query || !query.trim()) {
+    return res.status(400).json({ error: 'query is required' });
+  }
+  try {
+    const raw = await queryMemory(query.trim());
+    // Shape each result into a sidebar-card-friendly object
+    const results = raw.map((m, i) => ({
+      id: `search-${i}`,
+      title: m.answer
+        ? m.answer.split('\n')[0].replace(/^#+\s*/, '').trim().slice(0, 90) || `Result ${i + 1}`
+        : `Result ${i + 1}`,
+      content: m.answer ?? '',
+      confidence: Math.round((m.confidence ?? 0) * 100),
+      citationIds: (m.citations ?? []).map(c => c.id ?? c.session_id ?? String(c)).filter(Boolean),
+      tag: { type: 'search result' },
+    }));
+    res.json({ results, total: results.length });
+  } catch (err) {
+    console.error('[Server] POST /api/memories/search error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Legacy routes (kept for backward compatibility) ──────────
 
 // POST /api/agent/run  (old route — proxies to the new agent logic)
