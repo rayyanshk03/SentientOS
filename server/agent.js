@@ -14,7 +14,7 @@ const { GoogleGenAI } = require('@google/genai');
 const { queryMemory, saveMemory } = require('./parcle');
 
 // ── Init Gemini Client ──────────────────────────────────────
-const MODEL_ID = 'gemini-2.5-flash';
+const MODEL_ID = 'gemini-3.5-flash';
 
 function createGenAI() {
   const apiKey = process.env.GEMINI_API_KEY;
