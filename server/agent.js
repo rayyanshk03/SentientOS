@@ -35,13 +35,14 @@ function createGenAI() {
  * Runs the full agent loop for a given user task.
  *
  * @param {string} userTask - The task or question from the user.
+ * @param {Function} [onStep] - Optional callback to stream progress steps.
  * @returns {Promise<{
  *   response: string,
  *   sessionId: string|null,
  *   retrievedMemories: Array<{ title: string, confidence: number, citationIds: string[] }>
  * }>}
  */
-async function runAgent(userTask) {
+async function runAgent(userTask, onStep) {
   console.log('\n═══════════════════════════════════════════');
   console.log(`[Agent] 🚀 runAgent started`);
   console.log(`[Agent] 📝 Task: "${userTask}"`);
@@ -49,6 +50,7 @@ async function runAgent(userTask) {
 
   // ── Step 1: Query Parcle for relevant past decisions ──────
   console.log('\n[Agent] Step 1 — Querying Parcle memory...');
+  if (onStep) onStep('🔍 Querying Parcle memory...');
   let parcleMemories = [];
   try {
     parcleMemories = await queryMemory(userTask);
@@ -56,6 +58,8 @@ async function runAgent(userTask) {
   } catch (err) {
     console.warn('[Agent] Parcle query failed, continuing without memory context:', err.message);
   }
+  
+  if (onStep) onStep(`📚 Found ${parcleMemories.length} relevant memories`);
 
   // Shape retrieved memories for the frontend — strip heavy answer text
   const retrievedMemories = parcleMemories.map((m, i) => ({
@@ -112,6 +116,7 @@ async function runAgent(userTask) {
   console.log('[Agent] Prompt built with', parcleMemories.length, 'memory context(s).');
 
   // ── Step 3: Call Gemini API (with fallbacks) ──────────────
+  if (onStep) onStep('🧠 Sending to Claude with context...');
   let agentResponse = '';
   let successfulModel = '';
   const ai = createGenAI();
@@ -139,6 +144,7 @@ async function runAgent(userTask) {
 
   // ── Step 4: Save decision to Parcle ──────────────────────
   console.log('\n[Agent] Step 4 — Saving decision to Parcle...');
+  if (onStep) onStep('💾 Saving decision to Parcle...');
   const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
   // Generate a short title from the user task (first 80 chars)
   const decisionTitle = userTask.length > 80 ? `${userTask.slice(0, 77)}...` : userTask;

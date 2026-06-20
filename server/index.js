@@ -25,24 +25,40 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// ── POST /api/agent ──────────────────────────────────────────
-// Body: { task: string }
-// Runs the full agent loop and returns the AI response
-app.post('/api/agent', async (req, res) => {
-  const { task } = req.body;
+// ── ALL /api/agent ───────────────────────────────────────────
+// GET (query) or POST (body): { task: string }
+// Runs the full agent loop and streams progress via SSE
+app.all('/api/agent', async (req, res) => {
+  const task = req.method === 'GET' ? req.query.task : req.body.task;
   if (!task) {
     return res.status(400).json({ error: 'task is required' });
   }
+
+  // Set SSE Headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  const sendEvent = (event, data) => {
+    const payload = typeof data === 'object' ? JSON.stringify(data) : data;
+    res.write(`event: ${event}\ndata: ${payload}\n\n`);
+  };
+
   try {
-    const result = await runAgent(task);
-    res.json({
+    const result = await runAgent(task, (stepMsg) => {
+      sendEvent('step', stepMsg);
+    });
+    sendEvent('done', {
       response: result.response,
       retrievedMemories: result.retrievedMemories ?? [],
       memoriesSaved: true,
     });
+    res.end();
   } catch (err) {
-    console.error('[Server] POST /api/agent error:', err.message);
-    res.status(500).json({ error: err.message });
+    console.error('[Server] /api/agent error:', err.message);
+    sendEvent('error', { error: err.message });
+    res.end();
   }
 });
 

@@ -430,6 +430,7 @@ export default function App() {
   }]);
   const [input, setInput]       = useState('');
   const [isThinking, setIsThinking] = useState(false);
+  const [statusFeed, setStatusFeed] = useState('');
 
   const chatEndRef = useRef(null);
   const inputRef   = useRef(null);
@@ -501,18 +502,19 @@ export default function App() {
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setIsThinking(true);
+    setStatusFeed('Initializing...');
     setSidebarOpen(false); // close drawer on mobile when sending
 
-    try {
-      const res  = await fetch('/api/agent', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ task }),
-      });
+    const encodedTask = encodeURIComponent(task);
+    const eventSource = new EventSource(`/api/agent?task=${encodedTask}`);
 
-      if (!res.ok) throw new Error(`Server error ${res.status}`);
+    eventSource.addEventListener('step', (e) => {
+      setStatusFeed(e.data);
+    });
 
-      const data     = await res.json();
+    eventSource.addEventListener('done', async (e) => {
+      eventSource.close();
+      const data = JSON.parse(e.data);
       const agentMsg = {
         id: Date.now() + 1,
         role: 'agent',
@@ -521,18 +523,22 @@ export default function App() {
       };
       setMessages(prev => [...prev, agentMsg]);
       await fetchMemories();
-    } catch (err) {
+      setIsThinking(false);
+      setStatusFeed('');
+      setTimeout(() => inputRef.current?.focus(), 50);
+    });
+
+    eventSource.addEventListener('error', (e) => {
+      eventSource.close();
       showToast('Agent unavailable, try again');
-      // Also add an in-chat error bubble
       setMessages(prev => [...prev, {
         id: Date.now() + 1,
         role: 'agent',
         content: '⚠️ Unable to reach the agent. Please check the server is running and try again.',
       }]);
-    } finally {
       setIsThinking(false);
-      setTimeout(() => inputRef.current?.focus(), 50);
-    }
+      setStatusFeed('');
+    });
   };
 
   const handleKeyDown = (e) => {
@@ -869,6 +875,24 @@ export default function App() {
             {isThinking && <LoadingSpinner />}
             <div ref={chatEndRef} />
           </div>
+
+          {/* Status Feed */}
+          {statusFeed && (
+            <div style={{
+              padding: '8px 16px', background: '#F5F5F7', borderTop: '1px solid #E5E5EA',
+              display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#0071E3',
+              fontWeight: 500, flexShrink: 0,
+            }}>
+              <style>{`
+                @keyframes pulseDot { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1); } }
+              `}</style>
+              <div style={{
+                width: 6, height: 6, borderRadius: '50%', background: '#0071E3',
+                animation: 'pulseDot 1.5s infinite ease-in-out'
+              }} />
+              {statusFeed}
+            </div>
+          )}
 
           {/* Input bar */}
           <div style={{
