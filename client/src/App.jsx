@@ -432,6 +432,13 @@ export default function App() {
   const [isThinking, setIsThinking] = useState(false);
   const [statusFeed, setStatusFeed] = useState('');
 
+  // Save Decision form state
+  const [saveTitle, setSaveTitle] = useState('');
+  const [saveContent, setSaveContent] = useState('');
+  const [saveTags, setSaveTags] = useState([]);
+  const [currentTagInput, setCurrentTagInput] = useState('');
+  const [isSavingDecision, setIsSavingDecision] = useState(false);
+
   const chatEndRef = useRef(null);
   const inputRef   = useRef(null);
 
@@ -543,6 +550,52 @@ export default function App() {
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
+  };
+
+  /* ── Save Decision Handlers ── */
+  const handleSaveDecision = async () => {
+    if (!saveTitle.trim() || !saveContent.trim() || isSavingDecision) return;
+    setIsSavingDecision(true);
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const finalTags = [...saveTags, 'type:manual', `date:${today}`];
+      
+      const res = await fetch('/api/memory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: saveTitle.trim(),
+          content: saveContent.trim(),
+          tags: finalTags
+        }),
+      });
+      if (!res.ok) throw new Error('Failed to save memory');
+      showToast('✓ Saved to Parcle');
+      setSaveTitle('');
+      setSaveContent('');
+      setSaveTags([]);
+      setCurrentTagInput('');
+      await fetchMemories();
+    } catch (err) {
+      showToast('Failed to save decision');
+    } finally {
+      setIsSavingDecision(false);
+    }
+  };
+
+  const handleTagKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      const newTag = currentTagInput.trim().replace(/^,+|,+$/g, '');
+      if (newTag && !saveTags.includes(newTag)) {
+        setSaveTags(prev => [...prev, newTag]);
+      }
+      setCurrentTagInput('');
+    }
+  };
+
+  const removeTag = (tagToRemove) => {
+    setSaveTags(prev => prev.filter(t => t !== tagToRemove));
   };
 
   /* ── shared inline styles ── */
@@ -812,6 +865,91 @@ export default function App() {
             ) : (
               memories.map((m, i) => <MemoryCard key={m.id || i} memory={m} />)
             )}
+          </div>
+
+          {/* Save Decision Panel */}
+          <div style={{
+            padding: '14px', borderTop: '1px solid #E5E5EA', background: '#FAFAFA',
+            display: 'flex', flexDirection: 'column', gap: 10, flexShrink: 0
+          }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#1D1D1F' }}>Save Decision</div>
+            <input
+              type="text"
+              placeholder="Decision title"
+              value={saveTitle}
+              onChange={e => setSaveTitle(e.target.value)}
+              disabled={isSavingDecision}
+              style={{
+                width: '100%', padding: '8px 12px', borderRadius: 8,
+                border: '1px solid #D2D2D7', fontSize: 13, outline: 'none',
+                background: '#fff', boxSizing: 'border-box',
+                transition: 'border-color 0.15s ease'
+              }}
+              onFocus={e => e.target.style.borderColor = '#0071E3'}
+              onBlur={e => e.target.style.borderColor = '#D2D2D7'}
+            />
+            <textarea
+              placeholder="Decision content"
+              value={saveContent}
+              onChange={e => setSaveContent(e.target.value)}
+              disabled={isSavingDecision}
+              rows={3}
+              style={{
+                width: '100%', padding: '8px 12px', borderRadius: 8,
+                border: '1px solid #D2D2D7', fontSize: 13, outline: 'none',
+                background: '#fff', boxSizing: 'border-box', resize: 'none',
+                fontFamily: 'inherit', transition: 'border-color 0.15s ease'
+              }}
+              onFocus={e => e.target.style.borderColor = '#0071E3'}
+              onBlur={e => e.target.style.borderColor = '#D2D2D7'}
+            />
+            <div style={{
+              display: 'flex', flexWrap: 'wrap', gap: 6,
+              alignItems: 'center', background: '#fff',
+              border: '1px solid #D2D2D7', borderRadius: 8, padding: '4px 8px',
+              minHeight: 34, boxSizing: 'border-box'
+            }}>
+              {saveTags.map(tag => (
+                <div key={tag} style={{
+                  background: '#E8F1FB', color: '#0071E3',
+                  padding: '2px 8px', borderRadius: 12, fontSize: 12,
+                  display: 'flex', alignItems: 'center', gap: 4
+                }}>
+                  {tag}
+                  <button onClick={() => removeTag(tag)} disabled={isSavingDecision} style={{
+                    background: 'none', border: 'none', color: '#0071E3', padding: 0,
+                    cursor: 'pointer', display: 'flex', alignItems: 'center'
+                  }}>
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2.5 2.5L7.5 7.5M7.5 2.5L2.5 7.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
+                  </button>
+                </div>
+              ))}
+              <input
+                type="text"
+                placeholder={saveTags.length === 0 ? "Add tags..." : ""}
+                value={currentTagInput}
+                onChange={e => setCurrentTagInput(e.target.value)}
+                onKeyDown={handleTagKeyDown}
+                disabled={isSavingDecision}
+                style={{
+                  border: 'none', outline: 'none', background: 'transparent',
+                  fontSize: 13, width: 80, flex: 1, minWidth: 60
+                }}
+              />
+            </div>
+            <button
+              onClick={handleSaveDecision}
+              disabled={isSavingDecision || !saveTitle.trim() || !saveContent.trim()}
+              style={{
+                width: '100%', padding: '10px', borderRadius: 8, border: 'none',
+                background: (isSavingDecision || !saveTitle.trim() || !saveContent.trim()) ? '#D2D2D7' : '#0071E3',
+                color: '#fff', fontSize: 13, fontWeight: 600,
+                cursor: (isSavingDecision || !saveTitle.trim() || !saveContent.trim()) ? 'not-allowed' : 'pointer',
+                transition: 'background 0.15s ease'
+              }}
+            >
+              {isSavingDecision ? 'Saving...' : 'Save to Memory'}
+            </button>
           </div>
         </aside>
 
