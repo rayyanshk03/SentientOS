@@ -177,7 +177,7 @@ export default function AdrsPage() {
       </div>
 
       {/* Create ADR Modal */}
-      <Modal isOpen={isCreateOpen} onClose={() => !isCreating && setIsCreateOpen(false)} title="Create Architecture Decision">
+      <Modal open={isCreateOpen} onClose={() => !isCreating && setIsCreateOpen(false)} title="Create Architecture Decision">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <Input 
             label="Decision Name" 
