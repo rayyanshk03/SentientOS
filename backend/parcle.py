@@ -44,22 +44,40 @@ async def ensure_user(user_id: str):
     except Exception:
         pass  # Ignore 409 or other errors
 
-async def save_memory(title: str, content: str, tags: list = None):
+async def save_memory(
+    title: str,
+    content: str,
+    tags: list = None,
+    category: str = "General",
+    source: str = "agent",
+    project_id: str = None,
+    description: str = None
+):
+    """Save a memory to Parcle with full metadata schema."""
     if tags is None:
         tags = []
 
     timestamp = datetime.utcnow().isoformat() + "Z"
-    project_name = os.getenv("ENTER_PROJECT_ID", "eternal-architect")
+    project_name = project_id or os.getenv("ENTER_PROJECT_ID", "eternal-architect")
 
-    print(f"[Parcle] 💾 saveMemory → title=\"{title}\" tags={tags}")
+    print(f"[Parcle] 💾 saveMemory → title=\"{title}\" category={category} source={source}")
 
     try:
         await ensure_user(DEFAULT_USER_ID)
 
+        # Build rich tag object with all required metadata fields
         tag_object = {
             "project": project_name,
             "timestamp": timestamp,
+            "category": category,
+            "source": source,
+            "decision": "true",
+            "architect": "true",
         }
+
+        if description:
+            tag_object["description"] = description[:200]  # Parcle tag value limit
+
         for t in tags:
             if isinstance(t, str) and ':' in t:
                 k, v = t.split(':', 1)
@@ -72,7 +90,7 @@ async def save_memory(title: str, content: str, tags: list = None):
         payload = {
             "user_id": DEFAULT_USER_ID,
             "messages": [
-                {"role": "user", "content": f"[Memory] {title}"},
+                {"role": "user",      "content": f"[{category}] {title}"},
                 {"role": "assistant", "content": content}
             ],
             "tag": tag_object
@@ -84,7 +102,7 @@ async def save_memory(title: str, content: str, tags: list = None):
             lambda: _make_request(f"{BASE_URL}/v1/memories/ingest_dialog", payload)
         )
         session_id = data.get("session_id")
-        print(f"[Parcle] ✅ Memory saved → session_id={session_id}")
+        print(f"[Parcle] ✅ Memory saved → session_id={session_id} category={category}")
         return session_id
     except Exception as e:
         print(f"[Parcle] ❌ save_memory failed: {e}")
@@ -94,14 +112,13 @@ async def query_memory(natural_language_query: str):
     print(f"[Parcle] 🔍 queryMemory → \"{natural_language_query}\"")
     try:
         loop = asyncio.get_event_loop()
-        
-        # Use SSE stream — we read the full response body and parse it
+
         api_key = get_api_key()
         payload = json.dumps({
             "user_id": DEFAULT_USER_ID,
             "query": natural_language_query
         }).encode("utf-8")
-        
+
         req = urllib.request.Request(
             f"{BASE_URL}/v1/memories/search",
             data=payload,
@@ -113,15 +130,14 @@ async def query_memory(natural_language_query: str):
             },
             method="POST"
         )
-        
+
         def do_query():
             with urllib.request.urlopen(req, timeout=10) as resp:
                 body = resp.read().decode("utf-8")
             return body
 
         body = await loop.run_in_executor(None, do_query)
-        
-        # Parse SSE: find "event: final" then read the next "data:" line
+
         lines = body.splitlines()
         seen_final = False
         final_data = None
@@ -144,19 +160,19 @@ async def query_memory(natural_language_query: str):
         print(f"[Parcle] ✅ queryMemory result → confidence={final_data.get('confidence')} citations={len(final_data.get('citations', []))}")
 
         results = [{
-            "query": natural_language_query,
-            "answer": final_data.get("answer"),
+            "query":      natural_language_query,
+            "answer":     final_data.get("answer"),
             "confidence": final_data.get("confidence"),
-            "citations": final_data.get("citations", [])
+            "citations":  final_data.get("citations", [])
         }]
 
         citations = final_data.get("citations", [])
         if len(citations) > 1:
             extras = [{
-                "query": natural_language_query,
-                "answer": final_data.get("answer"),
+                "query":      natural_language_query,
+                "answer":     final_data.get("answer"),
                 "confidence": final_data.get("confidence"),
-                "citations": [c]
+                "citations":  [c]
             } for c in citations[1:5]]
             results.extend(extras)
 

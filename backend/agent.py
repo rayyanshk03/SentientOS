@@ -251,12 +251,36 @@ ALWAYS match tone to the question."""
     today = datetime.utcnow().strftime("%Y-%m-%d")
     decision_title = f"{user_task[:77]}..." if len(user_task) > 80 else user_task
 
+    # ── Auto-detect memory category from task keywords ─────────────────────
+    task_lower = user_task.lower()
+    if any(w in task_lower for w in ["architect", "design", "pattern", "structure", "schema", "database", "api"]):
+        auto_category = "Architecture Decision"
+    elif any(w in task_lower for w in ["bug", "fix", "error", "crash", "issue", "broken", "debug"]):
+        auto_category = "Bug Fix"
+    elif any(w in task_lower for w in ["standard", "style", "lint", "format", "convention", "guideline"]):
+        auto_category = "Coding Standard"
+    elif any(w in task_lower for w in ["deploy", "release", "ci", "cd", "pipeline", "production", "staging"]):
+        auto_category = "Deployment History"
+    elif any(w in task_lower for w in ["feature", "add", "build", "implement", "create", "new"]):
+        auto_category = "Feature Request"
+    elif any(w in task_lower for w in ["doc", "readme", "comment", "docstring", "wiki"]):
+        auto_category = "Documentation Update"
+    elif any(w in task_lower for w in ["team", "review", "discuss", "meeting", "decision", "agree"]):
+        auto_category = "Team Discussion"
+    else:
+        auto_category = "General"
+
     session_id = None
     try:
         session_id = await asyncio.wait_for(
-            save_memory(decision_title, agent_response, [
-                persona or 'architect', 'decision', f"date:{today}"
-            ]),
+            save_memory(
+                title=decision_title,
+                content=agent_response,
+                tags=[persona or 'architect', f"date:{today}"],
+                category=auto_category,
+                source="agent",
+                project_id=os.getenv("ENTER_PROJECT_ID", "eternal-architect"),
+            ),
             timeout=10.0
         )
     except asyncio.TimeoutError:
@@ -273,7 +297,7 @@ ALWAYS match tone to the question."""
                 "taskId": f"task-{int(time.time()*1000)}",
                 "task": user_task,
                 "persona": persona or 'architect',
-                "llm": "gemini-2.5-flash",
+                "llm": provider,
                 "memoriesUsed": [m.get("id", m.get("session_id", "unknown")) for m in parcle_memories],
                 "response": agent_response,
                 "timeTaken": time_taken,

@@ -6,6 +6,16 @@ import Modal from '../components/ui/Modal';
 import Input from '../components/ui/Input';
 import { MemoryGridSkeleton } from '../components/ui/Skeleton';
 
+const CATEGORIES = [
+  { id: 'all',           label: 'All',                   icon: '🧠', color: '#6E6E73' },
+  { id: 'architecture',  label: 'Architecture Decision',  icon: '🏗️', color: '#0071E3' },
+  { id: 'bug_fix',       label: 'Bug Fix',                icon: '🐛', color: '#FF3B30' },
+  { id: 'coding',        label: 'Coding Standard',        icon: '📐', color: '#AF52DE' },
+  { id: 'deployment',    label: 'Deployment History',     icon: '🚀', color: '#FF9500' },
+  { id: 'feature',       label: 'Feature Request',        icon: '✨', color: '#34C759' },
+  { id: 'team',          label: 'Team Discussion',        icon: '💬', color: '#5AC8FA' },
+  { id: 'documentation', label: 'Documentation Update',   icon: '📄', color: '#8E8E93' },
+];
 
 /* ─── Helpers ─────────────────────────────────────────────────────────────── */
 function formatRelativeTime(dateStr) {
@@ -39,6 +49,7 @@ export default function MemoriesPage() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSort, setActiveSort] = useState('Recent');
+  const [activeCategory, setActiveCategory] = useState('all');
   
   // Edit state
   const [editingId, setEditingId] = useState(null);
@@ -53,6 +64,9 @@ export default function MemoriesPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
+  const [newDescription, setNewDescription] = useState('');
+  const [newCategory, setNewCategory] = useState('Architecture Decision');
+  const [newSource, setNewSource] = useState('manual');
   const [newTagsStr, setNewTagsStr] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
@@ -60,12 +74,23 @@ export default function MemoriesPage() {
   const processedMemories = useMemo(() => {
     let list = [...memories];
     
+    // Category filter
+    if (activeCategory !== 'all') {
+      const catEntry = CATEGORIES.find(c => c.id === activeCategory);
+      const catLabel = catEntry?.label || '';
+      list = list.filter(m => {
+        const mCat = m.category || m.tag?.category || '';
+        return mCat.toLowerCase().includes(catLabel.toLowerCase().split(' ')[0].toLowerCase());
+      });
+    }
+
     // Search filter
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       list = list.filter(m => 
         (m.title || m.tag?.title || '').toLowerCase().includes(q) ||
-        (m.content || '').toLowerCase().includes(q)
+        (m.content || '').toLowerCase().includes(q) ||
+        (m.category || '').toLowerCase().includes(q)
       );
     }
 
@@ -79,7 +104,7 @@ export default function MemoriesPage() {
     }
 
     return list;
-  }, [memories, searchQuery, activeSort]);
+  }, [memories, searchQuery, activeSort, activeCategory]);
 
   // Grouped stats
   const totalCount = memories.length;
@@ -149,16 +174,32 @@ export default function MemoriesPage() {
     setIsSaving(true);
     try {
       const tags = newTagsStr.split(',').map(s => s.trim()).filter(Boolean);
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/memory`, {
+      // Map UI category label to enum key
+      const categoryMap = {
+        'Architecture Decision': 'architecture',
+        'Bug Fix': 'bug_fix',
+        'Coding Standard': 'coding_standard',
+        'Deployment History': 'deployment',
+        'Feature Request': 'feature',
+        'Team Discussion': 'team',
+        'Documentation Update': 'documentation',
+      };
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/memory/save`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: newTitle.trim(), content: newContent.trim(), tags })
+        body: JSON.stringify({
+          title: newTitle.trim(),
+          content: newContent.trim(),
+          description: newDescription.trim() || undefined,
+          category: categoryMap[newCategory] || 'general',
+          source: newSource,
+          projectId: 'default-project',
+          tags,
+        })
       });
       if (res.ok) {
-        setNewTitle('');
-        setNewContent('');
-        setNewTagsStr('');
-        setShowAddModal(false);
+        setNewTitle(''); setNewContent(''); setNewDescription('');
+        setNewTagsStr(''); setShowAddModal(false);
         if (triggerRefresh) triggerRefresh();
       }
     } catch (err) {
@@ -196,17 +237,41 @@ export default function MemoriesPage() {
       {/* Overview Stat Widgets */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
         <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 12, padding: 18 }}>
-          <span style={{ fontSize: 11, color: 'var(--gray-mid)', fontWeight: 600, textTransform: 'uppercase' }}>Total Rules</span>
+          <span style={{ fontSize: 11, color: 'var(--gray-mid)', fontWeight: 600, textTransform: 'uppercase' }}>Total Memories</span>
           <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--black)', marginTop: 4 }}>{totalCount}</div>
         </div>
         <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 12, padding: 18 }}>
-          <span style={{ fontSize: 11, color: 'var(--gray-mid)', fontWeight: 600, textTransform: 'uppercase' }}>Pinned Choices</span>
+          <span style={{ fontSize: 11, color: 'var(--gray-mid)', fontWeight: 600, textTransform: 'uppercase' }}>Pinned</span>
           <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--blue)', marginTop: 4 }}>{pinnedCount}</div>
         </div>
         <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 12, padding: 18 }}>
-          <span style={{ fontSize: 11, color: 'var(--gray-mid)', fontWeight: 600, textTransform: 'uppercase' }}>Hot Recalls</span>
-          <div style={{ fontSize: 28, fontWeight: 700, color: '#ff9500', marginTop: 4 }}>{hotCount}</div>
+          <span style={{ fontSize: 11, color: 'var(--gray-mid)', fontWeight: 600, textTransform: 'uppercase' }}>Categories</span>
+          <div style={{ fontSize: 28, fontWeight: 700, color: '#AF52DE', marginTop: 4 }}>{CATEGORIES.length - 1}</div>
         </div>
+      </div>
+
+      {/* Category Filter Chips */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {CATEGORIES.map(cat => {
+          const isActive = activeCategory === cat.id;
+          return (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategory(cat.id)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 5,
+                padding: '6px 14px', borderRadius: 'var(--radius-pill)',
+                border: `1.5px solid ${isActive ? cat.color : 'var(--border)'}`,
+                background: isActive ? `${cat.color}18` : 'var(--white)',
+                color: isActive ? cat.color : 'var(--gray-mid)',
+                fontSize: 12.5, fontWeight: isActive ? 700 : 500,
+                cursor: 'pointer', transition: 'all 0.15s ease',
+              }}
+            >
+              <span>{cat.icon}</span>{cat.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Control bar (Search + Sort) */}
@@ -364,13 +429,32 @@ export default function MemoriesPage() {
                   </div>
                 ) : (
                   <>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Badge color={badgeColor} size="sm">{badgeLabel}</Badge>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        {/* Category badge */}
+                        {(() => {
+                          const cat = m.category || m.tag?.category || 'General';
+                          const catEntry = CATEGORIES.find(c => cat.toLowerCase().includes(c.label.split(' ')[0].toLowerCase()));
+                          return (
+                            <span style={{
+                              display: 'inline-flex', alignItems: 'center', gap: 4,
+                              fontSize: 10, fontWeight: 700, padding: '2px 8px',
+                              borderRadius: 'var(--radius-pill)',
+                              background: catEntry ? `${catEntry.color}18` : '#F5F5F7',
+                              color: catEntry?.color || '#6E6E73',
+                              border: `1px solid ${catEntry ? catEntry.color + '40' : '#E5E5EA'}`,
+                            }}>
+                              {catEntry?.icon || '🧠'} {cat}
+                            </span>
+                          );
+                        })()}
+                        <Badge color={badgeColor} size="sm">{badgeLabel}</Badge>
+                      </div>
                       <div style={{ display: 'flex', gap: 8 }}>
-                        <button onClick={() => handlePin(m)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, opacity: m.pinned ? 1 : 0.4 }} title="Pin choice">📌</button>
-                        <button onClick={() => handleCopy(m)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, opacity: 0.6 }} title="Copy to clipboard">📋</button>
-                        <button onClick={() => startEdit(m)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, opacity: 0.6 }} title="Edit decision">✏️</button>
-                        <button onClick={() => setDeletingId(m.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: '#ff3b30', opacity: 0.7 }} title="Delete decision">🗑️</button>
+                        <button onClick={() => handlePin(m)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, opacity: m.pinned ? 1 : 0.4 }} title="Pin">📌</button>
+                        <button onClick={() => handleCopy(m)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, opacity: 0.6 }} title="Copy">📋</button>
+                        <button onClick={() => startEdit(m)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, opacity: 0.6 }} title="Edit">✏️</button>
+                        <button onClick={() => setDeletingId(m.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: '#ff3b30', opacity: 0.7 }} title="Delete">🗑️</button>
                       </div>
                     </div>
 
@@ -390,8 +474,8 @@ export default function MemoriesPage() {
 
                     <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '4px 0 0 0' }} />
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--gray-mid)' }}>
-                      <span>Updated {formatRelativeTime(m.updated_at || m.created_at || m.tag?.timestamp)}</span>
-                      <span>Recalled {hitCount} time{hitCount !== 1 ? 's' : ''}</span>
+                      <span>📡 {m.tag?.source || m.source || 'agent'} · {formatRelativeTime(m.updated_at || m.created_at || m.tag?.timestamp)}</span>
+                      <span>Recalled {hitCount}×</span>
                     </div>
                   </>
                 )}
@@ -417,35 +501,66 @@ export default function MemoriesPage() {
         </div>
       )}
 
-      {/* Create decision modal */}
       {showAddModal && (
         <Modal
           open
           onClose={() => setShowAddModal(false)}
-          title="Add Manual Decision"
+          title="Add Memory Entry"
           footer={
             <>
               <Button variant="ghost" onClick={() => setShowAddModal(false)}>Cancel</Button>
-              <Button variant="primary" onClick={handleAddMemory} disabled={isSaving || !newTitle.trim() || !newContent.trim()} loading={isSaving}>Save Rule</Button>
+              <Button variant="primary" onClick={handleAddMemory} disabled={isSaving || !newTitle.trim() || !newContent.trim()} loading={isSaving}>Save Memory</Button>
             </>
           }
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <Input label="Decision Title" placeholder="e.g. Set system port to 5173" value={newTitle} onChange={e => setNewTitle(e.target.value)} />
+            <Input label="Title *" placeholder="e.g. Use Vite instead of CRA" value={newTitle} onChange={e => setNewTitle(e.target.value)} />
+
+            {/* Category selector */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--gray-mid)' }}>Decision Details</label>
+              <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--gray-mid)' }}>Category *</label>
+              <select
+                value={newCategory}
+                onChange={e => setNewCategory(e.target.value)}
+                style={{ height: 38, border: '1px solid var(--border)', borderRadius: 8, fontSize: 13.5, padding: '0 10px', background: 'var(--white)', color: 'var(--black)', outline: 'none' }}
+              >
+                {CATEGORIES.filter(c => c.id !== 'all').map(c => (
+                  <option key={c.id} value={c.label}>{c.icon} {c.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Description */}
+            <Input label="Description (optional)" placeholder="Short summary for quick scanning" value={newDescription} onChange={e => setNewDescription(e.target.value)} />
+
+            {/* Content */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--gray-mid)' }}>Full Details *</label>
               <textarea
-                placeholder="Explain the architectural reasoning..."
+                placeholder="Full explanation, reasoning, or code snippet..."
                 value={newContent}
                 onChange={e => setNewContent(e.target.value)}
                 rows={4}
-                style={{
-                  width: '100%', padding: '10px 14px', borderRadius: 8, border: '1.5px solid var(--border)', fontSize: 14.5, outline: 'none',
-                  background: 'var(--white)', color: 'var(--black)', resize: 'vertical', fontFamily: 'inherit'
-                }}
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1.5px solid var(--border)', fontSize: 14.5, outline: 'none', background: 'var(--white)', color: 'var(--black)', resize: 'vertical', fontFamily: 'inherit' }}
               />
             </div>
-            <Input label="Tags (comma separated)" placeholder="e.g. stack, react, port" value={newTagsStr} onChange={e => setNewTagsStr(e.target.value)} />
+
+            {/* Source */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--gray-mid)' }}>Source</label>
+              <select
+                value={newSource}
+                onChange={e => setNewSource(e.target.value)}
+                style={{ height: 38, border: '1px solid var(--border)', borderRadius: 8, fontSize: 13.5, padding: '0 10px', background: 'var(--white)', color: 'var(--black)', outline: 'none' }}
+              >
+                <option value="manual">Manual Entry</option>
+                <option value="upload">Document Upload</option>
+                <option value="standup">Standup Meeting</option>
+                <option value="agent">AI Agent</option>
+              </select>
+            </div>
+
+            <Input label="Tags (comma separated)" placeholder="e.g. react, vite, port" value={newTagsStr} onChange={e => setNewTagsStr(e.target.value)} />
           </div>
         </Modal>
       )}
