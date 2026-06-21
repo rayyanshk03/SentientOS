@@ -20,7 +20,9 @@ def connect_to_mongo():
         return None
 
     try:
-        client = MongoClient(uri, tlsCAFile=certifi.where())
+        client = MongoClient(uri, tlsCAFile=certifi.where(), serverSelectionTimeoutMS=2000)
+        # Force a connection check so we fail fast if IP is not whitelisted
+        client.admin.command('ping')
         db = client.get_database("sentient_os")
         
         collections["conversations"] = db.get_collection("conversations")
