@@ -8,8 +8,60 @@ from datetime import datetime
 from parcle import query_memory, save_memory
 from database import get_collections
 
+GROQ_API_URL  = "https://api.groq.com/openai/v1/chat/completions"
+GROQ_MODEL    = "llama-3.3-70b-versatile"  # Free, fast, generous quota
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
 
+# ─── Groq (primary — free tier, 14,400 req/day) ─────────────────────────────
+async def call_groq(system_prompt: str, user_message: str, chat_history: list = None) -> str:
+    from dotenv import dotenv_values
+    env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env')
+    config   = dotenv_values(env_path)
+    api_key  = config.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
+
+    if not api_key or not api_key.strip().startswith("gsk_"):
+        raise ValueError("GROQ_API_KEY missing or invalid — add it to your .env file")
+    api_key = api_key.strip()
+
+    messages = [{"role": "system", "content": system_prompt}]
+    if chat_history:
+        for msg in chat_history:
+            role = "assistant" if msg.get("role") == "agent" else "user"
+            messages.append({"role": role, "content": msg.get("content", "")})
+    messages.append({"role": "user", "content": user_message})
+
+    payload = json.dumps({
+        "model": GROQ_MODEL,
+        "messages": messages,
+        "max_tokens": 1024,
+        "temperature": 0.7,
+    }).encode("utf-8")
+
+    req = urllib.request.Request(
+        GROQ_API_URL,
+        data=payload,
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}",
+        },
+        method="POST"
+    )
+
+    loop = asyncio.get_event_loop()
+    def do_request():
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+
+    try:
+        data = await loop.run_in_executor(None, do_request)
+        return data["choices"][0]["message"]["content"]
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8")
+        print(f"[Groq] HTTP {e.code}: {body[:200]}")
+        raise Exception(f"Groq API error {e.code}: {body[:300]}")
+
+
+# ─── Gemini (fallback — multiple model tiers) ────────────────────────────────
 async def call_gemini(system_prompt: str, user_message: str, chat_history: list = None, model_name: str = "gemini-2.0-flash-lite") -> str:
     from dotenv import dotenv_values
     env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env')
@@ -24,8 +76,7 @@ async def call_gemini(system_prompt: str, user_message: str, chat_history: list 
         for msg in chat_history:
             role = "model" if msg.get("role") == "agent" else "user"
             contents.append({"parts": [{"text": msg.get("content", "")}], "role": role})
-            
-    # Add the current message
+
     contents.append({"parts": [{"text": user_message}], "role": "user"})
 
     payload = json.dumps({
@@ -57,13 +108,12 @@ async def call_gemini(system_prompt: str, user_message: str, chat_history: list 
     except urllib.error.HTTPError as e:
         body = e.read().decode("utf-8")
         print(f"[Gemini] HTTP {e.code} on {model_name}: {body[:200]}")
-        
-        # Fallback logic for Quota/Rate Limit or Expired keys
+
         if e.code in (429, 400, 403, 500, 503):
             fallbacks = {
-                "gemini-2.5-flash":    "gemini-2.0-flash",
-                "gemini-2.0-flash":    "gemini-flash-latest",
-                "gemini-flash-latest": "gemini-2.0-flash-lite",
+                "gemini-2.5-flash":      "gemini-2.0-flash",
+                "gemini-2.0-flash":      "gemini-flash-latest",
+                "gemini-flash-latest":   "gemini-2.0-flash-lite",
                 "gemini-2.0-flash-lite": None
             }
             next_model = fallbacks.get(model_name)
@@ -71,16 +121,48 @@ async def call_gemini(system_prompt: str, user_message: str, chat_history: list 
                 print(f"[Gemini] Error {e.code} on {model_name}. Trying {next_model}...")
                 return await call_gemini(system_prompt, user_message, chat_history, model_name=next_model)
             else:
-                print(f"[Gemini] All fallbacks exhausted (Error {e.code}). Returning mock response.")
-                return "**[Demo Mode — API Quota Exceeded]**\n\nThe Gemini API key in your `.env` file has exhausted its free quota. To restore live responses:\n1. Visit [ai.google.dev](https://ai.google.dev) and generate a new API key\n2. Update `GEMINI_API_KEY` in your `.env` file\n3. Restart the backend server\n\nYour UI, memory system, and Parcle integration are all working correctly — only the LLM inference is in demo mode."
-        
+                raise Exception(f"Gemini quota exhausted on all models (HTTP {e.code})")
+
         raise Exception(f"Gemini API error {e.code}: {body[:300]}")
+
+
+# ─── Smart router: Groq → Gemini → mock ─────────────────────────────────────
+async def call_llm(system_prompt: str, user_message: str, chat_history: list = None) -> tuple[str, str]:
+    """Returns (response_text, provider_name)"""
+    # 1. Try Groq first (free + fast)
+    try:
+        response = await call_groq(system_prompt, user_message, chat_history)
+        return response, "Groq LLaMA 3.3"
+    except Exception as groq_err:
+        print(f"[LLM] Groq failed: {groq_err}")
+
+    # 2. Fall back to Gemini
+    try:
+        response = await call_gemini(system_prompt, user_message, chat_history)
+        return response, "Gemini"
+    except Exception as gemini_err:
+        print(f"[LLM] Gemini failed: {gemini_err}")
+
+    # 3. Last resort: informative mock
+    mock = (
+        "I couldn't reach any AI provider right now.\n\n"
+        "**To fix this, add one of these to your `.env` file:**\n\n"
+        "**Option A — Groq (recommended, free):**\n"
+        "1. Visit [console.groq.com](https://console.groq.com) and sign up (free)\n"
+        "2. Go to **API Keys** → Create Key\n"
+        "3. Add `GROQ_API_KEY=gsk_...` to your `.env`\n\n"
+        "**Option B — Gemini:**\n"
+        "1. Visit [aistudio.google.com](https://aistudio.google.com) → Get API Key\n"
+        "2. Add `GEMINI_API_KEY=AIza...` to your `.env`\n\n"
+        "Restart the backend after updating `.env`."
+    )
+    return mock, "mock"
 
 
 async def run_agent(user_task: str, persona: str = 'architect', chat_history: list = None, on_step=None):
     start_time = time.time()
     print('\n═══════════════════════════════════════════')
-    print(f"[Agent] 🚀 runAgent started | LLM: Gemini 2.5 Flash")
+    print(f"[Agent] 🚀 runAgent started")
     print(f"[Agent] 📝 Task: \"{user_task}\"")
     print('═══════════════════════════════════════════')
 
@@ -148,17 +230,18 @@ NEVER use robotic headers for simple questions.
 ALWAYS match tone to the question."""
 
     if on_step:
-        await on_step('🧠 Sending to Gemini...')
+        await on_step('🧠 Calling AI...')
 
     try:
-        agent_response = await asyncio.wait_for(
-            call_gemini(system_prompt, user_task, chat_history),
+        agent_response, provider = await asyncio.wait_for(
+            call_llm(system_prompt, user_task, chat_history),
             timeout=60.0
         )
+        print(f"[Agent] ✅ Response from {provider}")
     except asyncio.TimeoutError:
-        raise Exception("Gemini took too long to respond. Please check your internet connection or API key.")
+        raise Exception("AI took too long to respond. Please check your internet connection.")
     except Exception as e:
-        print(f"[Agent] ❌ Gemini call failed: {e}")
+        print(f"[Agent] ❌ LLM call failed: {e}")
         raise
 
     if on_step:
