@@ -10,8 +10,15 @@ from datetime import datetime, timedelta
 @router.get("/stats")
 async def get_stats():
     from database import get_collections
-    memories = await list_recent_memories(1000) # Fetch up to 1000 to get a solid recent block
+    raw_memories = await list_recent_memories(1000) # Fetch up to 1000 to get a solid recent block
     cols = get_collections()
+    
+    deleted_ids = set()
+    if cols and cols.get("deleted_memories") is not None:
+        deleted_docs = cols["deleted_memories"].find({}, {"memoryId": 1})
+        deleted_ids = {doc["memoryId"] for doc in deleted_docs}
+        
+    memories = [m for m in raw_memories if m.get("id") not in deleted_ids]
     
     # 1. Total Memories
     total_memories = len(memories)

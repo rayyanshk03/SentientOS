@@ -9,7 +9,8 @@ collections = {
     "projects": None,
     "agent_logs": None,
     "uploads": None,
-    "users": None
+    "users": None,
+    "deleted_memories": None
 }
 
 def connect_to_mongo():
@@ -30,6 +31,7 @@ def connect_to_mongo():
         collections["agent_logs"] = db.get_collection("agent_logs")
         collections["uploads"] = db.get_collection("uploads")
         collections["users"] = db.get_collection("users")
+        collections["deleted_memories"] = db.get_collection("deleted_memories")
 
         print("[MongoDB] ✅ Connected to MongoDB Atlas (sentient_os)")
         return collections

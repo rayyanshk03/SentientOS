@@ -58,10 +58,23 @@ async def get_categories():
 # ── GET /api/memory/history  (alias: GET /api/memories) ─────────────────────
 @router.get("/memory/history")
 @router.get("/memories")
-async def get_memory_history(limit: int = 20):
-    """Full history of stored memories with enriched schema."""
+async def get_memory_history(limit: int = 50):
+    """Full history of stored memories with enriched schema, excluding soft-deleted ones."""
+    from database import get_collections
     raw = await list_recent_memories(limit)
-    enriched = [_enrich_memory(m, i) for i, m in enumerate(raw)]
+    
+    deleted_ids = set()
+    cols = get_collections()
+    if cols and cols.get("deleted_memories") is not None:
+        deleted_docs = cols["deleted_memories"].find({}, {"memoryId": 1})
+        deleted_ids = {doc["memoryId"] for doc in deleted_docs}
+        
+    enriched = []
+    for i, m in enumerate(raw):
+        mem = _enrich_memory(m, i)
+        if mem["id"] not in deleted_ids:
+            enriched.append(mem)
+            
     return {"memories": enriched, "total": len(enriched)}
 
 
@@ -102,15 +115,29 @@ async def save_memory_endpoint(req: MemoryRequest):
 @router.post("/memories/search")
 async def search_memories(req: SearchRequest):
     """Semantic search across Parcle memory."""
+    from database import get_collections
     if not req.query or not req.query.strip():
         return {"error": "query is required"}
 
     raw = await query_memory(req.query.strip())
+    
+    deleted_ids = set()
+    cols = get_collections()
+    if cols and cols.get("deleted_memories") is not None:
+        deleted_docs = cols["deleted_memories"].find({}, {"memoryId": 1})
+        deleted_ids = {doc["memoryId"] for doc in deleted_docs}
+
     results = []
     for i, m in enumerate(raw):
+        citations = m.get("citations", [])
+        citation_ids = [c.get("id", c.get("session_id", str(c))) for c in citations]
+        
+        # If the primary citation is deleted, skip this result
+        if citation_ids and citation_ids[0] in deleted_ids:
+            continue
+            
         ans  = m.get("answer", "")
         title = ans.split("\n")[0].lstrip("# ").strip()[:90] if ans else f"Result {i + 1}"
-        citations = m.get("citations", [])
         cat = "General"
         source = "agent"
         if citations:
@@ -126,7 +153,7 @@ async def search_memories(req: SearchRequest):
             "source":       source,
             "content":      ans,
             "confidence":   round(m.get("confidence", 0) * 100),
-            "citationIds":  [c.get("id", c.get("session_id", str(c))) for c in citations],
+            "citationIds":  citation_ids,
             "timestamp":    citations[0].get("updated_at") if citations else datetime.utcnow().isoformat(),
         })
     return {"results": results, "total": len(results)}
@@ -154,15 +181,16 @@ async def clear_all_memories():
 # ── DELETE /api/memories/{memory_id} ────────────────────────────────────────
 @router.delete("/memories/{memory_id}")
 async def delete_memory(memory_id: str):
+    from database import get_collections
     try:
-        from parcle import BASE_URL, DEFAULT_USER_ID, _make_request
-        import asyncio
-        loop = asyncio.get_event_loop()
-        await loop.run_in_executor(None, lambda: _make_request(
-            f"{BASE_URL}/v1/memories/sources/{memory_id}",
-            {"user_id": DEFAULT_USER_ID},
-            method="DELETE"
-        ))
+        cols = get_collections()
+        if cols and cols.get("deleted_memories") is not None:
+            # Soft delete by inserting into deleted_memories collection
+            cols["deleted_memories"].update_one(
+                {"memoryId": memory_id},
+                {"$set": {"memoryId": memory_id, "deletedAt": datetime.utcnow()}},
+                upsert=True
+            )
         return {"success": True}
     except Exception as e:
         return {"success": False, "error": str(e)}
