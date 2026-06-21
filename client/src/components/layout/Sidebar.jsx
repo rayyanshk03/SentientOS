@@ -135,6 +135,7 @@ export default function Sidebar({
       items: [
         { id: 'metrics', label: 'System Metrics', path: '/app/metrics', icon: <MetricsIcon /> },
         { id: 'history', label: 'Chat History', path: '/app/history', icon: <HistoryIcon /> },
+        { id: 'standup', label: 'Daily Standup', path: '/app/standup', icon: <span style={{fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18}}>🌅</span> },
         { id: 'llm-settings', label: 'AI Settings', path: '/app/llm-settings', icon: <LLMSettingsIcon /> },
       ]
     }

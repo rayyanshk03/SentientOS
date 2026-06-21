@@ -19,6 +19,7 @@ import AdrsPage from './pages/AdrsPage.jsx'
 import BugsPage from './pages/BugsPage.jsx'
 import KnowledgePage from './pages/KnowledgePage.jsx'
 import DemoPage from './pages/DemoPage.jsx'
+import StandupPage from './pages/StandupPage.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -35,6 +36,7 @@ createRoot(document.getElementById('root')).render(
           <Route path="demo" element={<DemoPage />} />
           <Route path="documents" element={<DocumentsPage />} />
           <Route path="user-management" element={<UserManagementPage />} />
+          <Route path="standup" element={<StandupPage />} />
           <Route path="metrics" element={<MetricsPage />} />
           <Route path="history" element={<HistoryPage />} />
           <Route path="llm-settings" element={<LLMSettingsPage />} />
