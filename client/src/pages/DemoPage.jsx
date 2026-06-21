@@ -36,7 +36,7 @@ export default function DemoPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: "Database and Backend Framework Choice",
+          decisionName: "Database and Backend Framework Choice",
           problem: "Need a fast backend and robust relational database for the MVP.",
           solution: "Use FastAPI and PostgreSQL.",
           reasoning: "FastAPI provides async support and auto-docs. PostgreSQL offers ACID compliance.",
