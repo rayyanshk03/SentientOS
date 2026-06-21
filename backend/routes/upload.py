@@ -82,6 +82,10 @@ async def upload_file(file: UploadFile = File(...), projectId: str = Form("defau
     with open(file_path, "wb") as f:
         f.write(contents)
 
+    text_path = os.path.join(UPLOAD_DIR, f"{filename}.txt")
+    with open(text_path, "w", encoding="utf-8") as f:
+        f.write(text)
+
     # Create a master memory so the LLM and the Sidebar know about the file URL
     master_title = f"File Uploaded: {filename}"
     master_content = f"The user uploaded a file named '{filename}'. It is safely stored locally.\n\nDownload/View Link: http://localhost:3002/api/uploads/{filename}\n\nThe file contains {len(text.split())} words of text."

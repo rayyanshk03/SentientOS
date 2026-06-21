@@ -172,6 +172,8 @@ async def run_agent(user_task: str, persona: str = 'architect', chat_history: li
 
     query_string = user_task
     task_lower = user_task.lower()
+    injected_doc_text = ""
+    injected_filename = ""
     if any(w in task_lower for w in ["pdf", "upload", "document", "file", "summarize"]):
         try:
             cols = get_collections()
@@ -181,6 +183,16 @@ async def run_agent(user_task: str, persona: str = 'architect', chat_history: li
                     filename = recent.get("filename", "")
                     if filename:
                         query_string = f"{user_task} (Context: {filename})"
+                        
+                        # Direct Text Injection
+                        UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
+                        text_path = os.path.join(UPLOAD_DIR, f"{filename}.txt")
+                        if os.path.exists(text_path):
+                            with open(text_path, "r", encoding="utf-8") as f:
+                                content = f.read()
+                                injected_doc_text = f"RECENTLY UPLOADED DOCUMENT ({filename}):\n{content[:15000]}\n\n"
+                                injected_filename = filename
+
                         if on_step:
                             await on_step(f'📄 Searching with recent upload: {filename}')
         except Exception:
@@ -213,6 +225,14 @@ async def run_agent(user_task: str, persona: str = 'architect', chat_history: li
             f"Memory {i+1} (confidence: {round(m.get('confidence', 0)*100)}%):\n{m.get('answer', '')}"
             for i, m in enumerate(parcle_memories)
         )
+
+    if injected_doc_text:
+        memory_summary = injected_doc_text + (memory_summary if parcle_memories else "")
+        retrieved_memories.insert(0, {
+            "title": f"Direct Document Inject: {injected_filename}",
+            "confidence": 100,
+            "citationIds": ["local-file"]
+        })
 
     # Fetch User Identity
     identity_context = ""
