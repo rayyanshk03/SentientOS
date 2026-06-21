@@ -10,7 +10,7 @@ from database import get_collections
 
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
 
-async def call_gemini(system_prompt: str, user_message: str, chat_history: list = None, model_name: str = "gemini-flash-latest") -> str:
+async def call_gemini(system_prompt: str, user_message: str, chat_history: list = None, model_name: str = "gemini-2.0-flash-lite") -> str:
     from dotenv import dotenv_values
     env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env')
     config = dotenv_values(env_path)
@@ -58,20 +58,21 @@ async def call_gemini(system_prompt: str, user_message: str, chat_history: list 
         body = e.read().decode("utf-8")
         print(f"[Gemini] HTTP {e.code} on {model_name}: {body[:200]}")
         
-        # Fallback logic for Quota/Rate Limit (429)
-        if e.code == 429:
+        # Fallback logic for Quota/Rate Limit or Expired keys
+        if e.code in (429, 400, 403, 500, 503):
             fallbacks = {
-                "gemini-2.5-flash": "gemini-2.0-flash",
-                "gemini-2.0-flash": "gemini-flash-latest",
-                "gemini-flash-latest": "gemini-2.0-flash-lite"
+                "gemini-2.5-flash":    "gemini-2.0-flash",
+                "gemini-2.0-flash":    "gemini-flash-latest",
+                "gemini-flash-latest": "gemini-2.0-flash-lite",
+                "gemini-2.0-flash-lite": None
             }
             next_model = fallbacks.get(model_name)
             if next_model:
-                print(f"[Gemini] Rate limit hit. Falling back to {next_model}...")
+                print(f"[Gemini] Error {e.code} on {model_name}. Trying {next_model}...")
                 return await call_gemini(system_prompt, user_message, chat_history, model_name=next_model)
             else:
-                print(f"[Gemini] All fallbacks exhausted (429 Quota Exceeded). Returning mock response.")
-                return "I'm currently experiencing high traffic (API Quota Exceeded). This is a mock response so you can continue testing the UI without being blocked!"
+                print(f"[Gemini] All fallbacks exhausted (Error {e.code}). Returning mock response.")
+                return "**[Demo Mode — API Quota Exceeded]**\n\nThe Gemini API key in your `.env` file has exhausted its free quota. To restore live responses:\n1. Visit [ai.google.dev](https://ai.google.dev) and generate a new API key\n2. Update `GEMINI_API_KEY` in your `.env` file\n3. Restart the backend server\n\nYour UI, memory system, and Parcle integration are all working correctly — only the LLM inference is in demo mode."
         
         raise Exception(f"Gemini API error {e.code}: {body[:300]}")
 
@@ -147,7 +148,7 @@ NEVER use robotic headers for simple questions.
 ALWAYS match tone to the question."""
 
     if on_step:
-        await on_step('🧠 Sending to Gemini 2.5 Flash...')
+        await on_step('🧠 Sending to Gemini...')
 
     try:
         agent_response = await asyncio.wait_for(

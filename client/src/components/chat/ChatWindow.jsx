@@ -112,6 +112,10 @@ export default function ChatWindow({
     }
   };
 
+  // Detect if agent is in demo/quota-exceeded mode
+  const lastAgentMsg = [...messages].reverse().find(m => m.role === 'agent');
+  const isDemoMode = lastAgentMsg?.content?.includes('[Demo Mode') || lastAgentMsg?.content?.includes('API Quota Exceeded');
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', flex: 1, minWidth: 0, position: 'relative' }}>
       {/* CHAT HEADER */}
@@ -132,11 +136,25 @@ export default function ChatWindow({
             {activePersona?.emoji}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--black)' }}>
-              {activePersona?.label}
-            </span>
-            <span style={{ fontSize: 12, color: 'var(--gray-mid)', fontWeight: 400 }}>
-              {activePersona?.subtitle}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--black)' }}>
+                {activePersona?.label}
+              </span>
+              {isDemoMode && (
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 4,
+                  background: '#FFF3CD', color: '#856404',
+                  border: '1px solid #FFEAA7',
+                  borderRadius: 'var(--radius-pill)',
+                  fontSize: 10, fontWeight: 700,
+                  padding: '2px 8px', letterSpacing: '0.3px',
+                }}>
+                  ⚠️ DEMO MODE
+                </span>
+              )}
+            </div>
+            <span style={{ fontSize: 12, color: isDemoMode ? '#FF9500' : 'var(--gray-mid)', fontWeight: 400 }}>
+              {isDemoMode ? 'API quota exhausted — update GEMINI_API_KEY in .env' : activePersona?.subtitle}
             </span>
           </div>
         </div>
@@ -301,7 +319,7 @@ export default function ChatWindow({
           </div>
         ) : (
           <>
-            <MessageBubble msg={{ id: 'session-start', role: 'system', content: 'Session started · June 21, 2026' }} />
+            <MessageBubble msg={{ id: 'session-start', role: 'system', content: `Session started · ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}` }} />
             {messages.map(msg => <MessageBubble key={msg.id} msg={msg} />)}
             {isLoading && <MessageBubble msg={{ id: 'typing', role: 'agent', isTyping: true }} />}
           </>
