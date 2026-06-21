@@ -13,6 +13,9 @@ export default function ChatWindow({
   activeProject,
   onUploadSuccess,
   identity,
+  autoSave = true,
+  toggleAutoSave,
+  extractMemory,
 }) {
   const messagesEndRef = useRef(null);
   const [dragActive, setDragActive] = useState(false);
@@ -159,30 +162,66 @@ export default function ChatWindow({
           </div>
         </div>
 
-        {/* Persona Switcher Chips */}
-        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 2 }}>
-          {personas.map(p => {
-            const isActive = p.id === activePersonaId;
-            return (
-              <button
-                key={p.id}
-                onClick={() => onPersonaChange?.(p.id)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '6px 12px', borderRadius: 'var(--radius-pill)',
-                  border: `1px solid ${isActive ? 'var(--blue)' : 'var(--border)'}`,
-                  background: isActive ? 'var(--blue)' : 'var(--white)',
-                  color: isActive ? 'var(--white)' : 'var(--gray-dark)',
-                  fontSize: 12, fontWeight: 600, cursor: 'pointer',
-                  transition: 'var(--transition)',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                <span>{p.emoji}</span>
-                {p.label.split(' ')[0]} {/* Short name assumption */}
-              </button>
-            );
-          })}
+        {/* Right side: Auto-Save toggle + Persona Chips */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+
+          {/* Auto-Save Toggle */}
+          <button
+            onClick={() => toggleAutoSave?.()}
+            title={autoSave ? 'Auto-Save ON — click to turn off' : 'Auto-Save OFF — click to turn on'}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '5px 12px', borderRadius: 'var(--radius-pill)',
+              border: `1.5px solid ${autoSave ? '#34C759' : 'var(--border)'}`,
+              background: autoSave ? '#E8F5E9' : 'var(--white)',
+              color: autoSave ? '#2E7D32' : 'var(--gray-mid)',
+              fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {/* Toggle pill */}
+            <span style={{
+              display: 'inline-block', width: 26, height: 14,
+              borderRadius: 7, background: autoSave ? '#34C759' : '#D1D1D6',
+              position: 'relative', transition: 'background 0.2s',
+              flexShrink: 0,
+            }}>
+              <span style={{
+                position: 'absolute', top: 2, left: autoSave ? 13 : 2,
+                width: 10, height: 10, borderRadius: '50%',
+                background: '#fff', transition: 'left 0.2s',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+              }} />
+            </span>
+            Auto-Save
+          </button>
+
+          {/* Persona Switcher Chips */}
+          <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 2 }}>
+            {personas.map(p => {
+              const isActive = p.id === activePersonaId;
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => onPersonaChange?.(p.id)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '6px 12px', borderRadius: 'var(--radius-pill)',
+                    border: `1px solid ${isActive ? 'var(--blue)' : 'var(--border)'}`,
+                    background: isActive ? 'var(--blue)' : 'var(--white)',
+                    color: isActive ? 'var(--white)' : 'var(--gray-dark)',
+                    fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                    transition: 'var(--transition)',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  <span>{p.emoji}</span>
+                  {p.label.split(' ')[0]}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -320,7 +359,17 @@ export default function ChatWindow({
         ) : (
           <>
             <MessageBubble msg={{ id: 'session-start', role: 'system', content: `Session started · ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}` }} />
-            {messages.map(msg => <MessageBubble key={msg.id} msg={msg} />)}
+            {messages.map((msg, index) => {
+              const prevMsg = index > 0 ? messages[index - 1] : null;
+              const userContent = prevMsg?.role === 'user' ? prevMsg.content : '';
+              return (
+                <MessageBubble 
+                  key={msg.id} 
+                  msg={msg} 
+                  onSave={msg.role === 'agent' ? () => extractMemory(userContent, msg.content, false) : undefined}
+                />
+              );
+            })}
             {isLoading && <MessageBubble msg={{ id: 'typing', role: 'agent', isTyping: true }} />}
           </>
         )}

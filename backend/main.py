@@ -13,7 +13,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from database import connect_to_mongo
-from routes import agent, memories, stats, upload, standup, identity
+from routes import agent, memories, stats, upload, standup, identity, adr, bugs
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -47,7 +47,8 @@ app.include_router(stats.router, prefix="/api")
 app.include_router(upload.router, prefix="/api")
 app.include_router(standup.router, prefix="/api")
 app.include_router(identity.router, prefix="/api/identity")
-
+app.include_router(adr.router, prefix="/api")
+app.include_router(bugs.router, prefix="/api")
 if __name__ == "__main__":
     # Change to backend directory so uvicorn's reloader can resolve 'main:app'
     os.chdir(backend_dir)

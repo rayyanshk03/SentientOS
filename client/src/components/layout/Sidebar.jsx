@@ -123,6 +123,8 @@ export default function Sidebar({
       title: 'Memory Vault',
       items: [
         { id: 'vault', label: 'Memory Directory', path: '/app/vault', icon: <BrainIcon size={18} /> },
+        { id: 'adr', label: 'Architecture Records', path: '/app/adr', icon: <span style={{fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18}}>🏛️</span> },
+        { id: 'bugs', label: 'Bug Fixes', path: '/app/bugs', icon: <span style={{fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18}}>🐛</span> },
         { id: 'documents', label: 'Documents Library', path: '/app/documents', icon: <DocumentsIcon /> },
       ]
     },

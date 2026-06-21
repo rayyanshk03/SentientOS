@@ -1,9 +1,18 @@
 from datetime import datetime
+from pydantic import BaseModel
+from typing import Optional
 from fastapi import APIRouter, Request
 from models import MemoryRequest, SearchRequest, MemoryCategory
 from parcle import save_memory, query_memory, list_recent_memories
 
 router = APIRouter()
+
+# ─── Extract request schema ──────────────────────────────────────────────────
+class ExtractRequest(BaseModel):
+    userMessage: str
+    agentResponse: str
+    projectId: Optional[str] = "default-project"
+    autoSave: Optional[bool] = False
 
 # ─── All 7 memory categories ────────────────────────────────────────────────
 CATEGORIES = [
@@ -163,3 +172,139 @@ async def delete_memory(memory_id: str):
 @router.put("/memories/{memory_id}")
 async def update_memory(memory_id: str, req: MemoryRequest):
     return {"success": True, "memory_id": memory_id}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  POST /api/memory/extract  — Intelligent memory extraction engine
+#  Analyzes a conversation and decides whether it should be saved,
+#  what category it belongs to, and extracts a clean title + content.
+# ══════════════════════════════════════════════════════════════════════════════
+EXTRACTION_SYSTEM_PROMPT = """You are a memory extraction engine for a software engineering AI assistant.
+
+Analyze the user + assistant conversation and decide if it contains information worth permanently storing.
+
+SAVE if ANY of the following are present:
+- Technical decisions (frameworks, languages, databases, tools chosen)
+- Bug fixes (what was broken and how it was resolved)
+- Coding conventions, patterns, or style standards agreed upon
+- Database schema or technology choices
+- API design decisions (REST, GraphQL, endpoints, auth strategy)
+- Deployment changes or CI/CD pipeline decisions
+- Team agreements on architecture or approach
+- Feature specifications that were confirmed
+
+DO NOT SAVE if the conversation is:
+- A simple greeting, thank you, or chitchat
+- A generic question with a textbook answer (not project-specific)
+- Already obvious or trivial boilerplate
+
+Respond ONLY with valid JSON in this EXACT format (no extra text, no markdown fences):
+{
+  "should_save": true,
+  "confidence": 0.92,
+  "category": "Architecture Decision",
+  "title": "Short descriptive title under 60 chars",
+  "content": "Structured summary of the key decision or information to remember. Use bullet points if there are multiple facts.",
+  "reason": "One-sentence explanation of why this is or isn't worth saving."
+}
+
+Category must be EXACTLY one of: Architecture Decision, Bug Fix, Coding Standard, Deployment History, Feature Request, Team Discussion, Documentation Update"""
+
+
+@router.post("/memory/extract")
+async def extract_memory(req: ExtractRequest):
+    """
+    Intelligent memory extraction: analyzes a conversation turn and returns
+    a structured memory preview. If autoSave=true, saves it immediately.
+    """
+    import asyncio, json, re
+    from agent import call_groq
+
+    conversation = f"User: {req.userMessage}\n\nAssistant: {req.agentResponse[:1200]}"
+
+    extraction = {
+        "should_save": False,
+        "confidence": 0,
+        "category": "General",
+        "title": "",
+        "content": "",
+        "reason": "Could not analyze conversation."
+    }
+
+    try:
+        raw = await asyncio.wait_for(
+            call_groq(EXTRACTION_SYSTEM_PROMPT, conversation),
+            timeout=20.0
+        )
+        # Strip markdown fences if LLM wrapped in ```json...```
+        cleaned = re.sub(r"```(?:json)?\s*|\s*```", "", raw).strip()
+        json_match = re.search(r'\{.*\}', cleaned, re.DOTALL)
+        if json_match:
+            parsed = json.loads(json_match.group())
+            extraction = parsed
+    except Exception as e:
+        print(f"[Memory Extract] Failed: {e}")
+        extraction["reason"] = f"Extraction failed: {str(e)[:100]}"
+
+    # Find the category metadata (icon + color)
+    cat_info = next((c for c in CATEGORIES if c["label"] == extraction.get("category")), None)
+    extraction["categoryIcon"]  = cat_info["icon"]  if cat_info else "🧠"
+    extraction["categoryColor"] = cat_info["color"] if cat_info else "#6E6E73"
+    extraction["timestamp"]     = datetime.utcnow().isoformat() + "Z"
+
+    session_id = None
+    if req.autoSave and extraction.get("should_save"):
+        try:
+            # Map category label → enum key
+            cat_key_map = {c["label"]: c["id"] for c in CATEGORIES}
+            cat_key = cat_key_map.get(extraction.get("category", ""), "general")
+            session_id = await asyncio.wait_for(
+                save_memory(
+                    title=extraction.get("title", req.userMessage[:60]),
+                    content=extraction.get("content", req.agentResponse[:800]),
+                    category=extraction.get("category", "General"),
+                    source="agent",
+                    project_id=req.projectId,
+                ),
+                timeout=10.0
+            )
+            extraction["saved"]      = True
+            extraction["session_id"] = session_id
+        except Exception as e:
+            print(f"[Memory Extract] Auto-save failed: {e}")
+            extraction["saved"] = False
+    else:
+        extraction["saved"] = False
+
+    return extraction
+
+
+# ── POST /api/memory/save-confirmed ──────────────────────────────────────────
+# Called when user clicks "Save" on the preview modal
+class SaveConfirmedRequest(BaseModel):
+    title: str
+    content: str
+    category: str
+    projectId: Optional[str] = "default-project"
+    source: Optional[str] = "manual"
+    tags: list = []
+
+@router.post("/memory/save-confirmed")
+async def save_confirmed_memory(req: SaveConfirmedRequest):
+    """Save a user-confirmed memory extraction."""
+    session_id = await save_memory(
+        title=req.title,
+        content=req.content,
+        category=req.category,
+        source=req.source,
+        project_id=req.projectId,
+        tags=req.tags,
+    )
+    if not session_id:
+        return {"success": False, "error": "Failed to save to Parcle"}
+    return {
+        "success":   True,
+        "memory_id": session_id,
+        "category":  req.category,
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+    }

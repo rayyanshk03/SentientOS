@@ -15,6 +15,8 @@ import HistoryPage from './pages/HistoryPage.jsx'
 import LLMSettingsPage from './pages/LLMSettingsPage.jsx'
 import ConfigurationPage from './pages/ConfigurationPage.jsx'
 import MemoriesPage from './pages/MemoriesPage.jsx'
+import AdrsPage from './pages/AdrsPage.jsx'
+import BugsPage from './pages/BugsPage.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -25,6 +27,8 @@ createRoot(document.getElementById('root')).render(
           <Route index element={<ChatPage />} />
           <Route path="pipeline" element={<PipelinePage />} />
           <Route path="vault" element={<MemoriesPage />} />
+          <Route path="adr" element={<AdrsPage />} />
+          <Route path="bugs" element={<BugsPage />} />
           <Route path="documents" element={<DocumentsPage />} />
           <Route path="user-management" element={<UserManagementPage />} />
           <Route path="metrics" element={<MetricsPage />} />

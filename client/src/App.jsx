@@ -10,6 +10,7 @@ import Button from './components/ui/Button';
 import Input  from './components/ui/Input';
 import StandupPanel from './components/standup/StandupPanel';
 import AppLoader from './components/ui/AppLoader';
+import MemoryPreviewModal from './components/ui/MemoryPreviewModal';
 
 /* ─── Persona definitions ───────────────────────────────────────────────────── */
 const PERSONAS = [
@@ -355,6 +356,12 @@ export default function App() {
   /* ── Stats (for Navbar memory count pill) ── */
   const [stats, setStats] = useState({ totalMemories: 0 });
 
+  /* ── Auto-Save Toggle + Memory Preview ── */
+  const [autoSave, setAutoSave] = useState(() => localStorage.getItem('autoSave') !== 'false');
+  const [memoryPreview, setMemoryPreview] = useState(null);   // { extraction, userMessage, agentResponse }
+  const [isSavingPreview, setIsSavingPreview] = useState(false);
+  const lastMessageRef = useRef({ user: '', agent: '' });
+
   /* ─────────────────────────────────────────────────────────────────────────
      addToast — adds a toast with auto-remove
   ───────────────────────────────────────────────────────────────────────── */
@@ -366,6 +373,13 @@ export default function App() {
   const removeToast = useCallback((id) => {
     setToasts(prev => prev.filter(t => t.id !== id));
   }, []);
+
+  const toggleAutoSave = useCallback((val) => {
+    const next = val !== undefined ? val : !autoSave;
+    setAutoSave(next);
+    localStorage.setItem('autoSave', String(next));
+    addToast(next ? '🧠 Auto-Save ON — memories saved automatically' : '⏸️ Auto-Save OFF — you\'ll preview before saving', 'info', 3000);
+  }, [autoSave, addToast]);
 
   /* ─────────────────────────────────────────────────────────────────────────
      refreshMemories — GET /api/memories
@@ -385,6 +399,44 @@ export default function App() {
       setMemoriesLoading(false);
     }
   }, []);
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     extractMemory — calls /api/memory/extract with the last conversation turn
+  ───────────────────────────────────────────────────────────────────────── */
+  const extractMemory = useCallback(async (userMsg, agentMsg, shouldAutoSave) => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/memory/extract`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userMessage: userMsg,
+          agentResponse: agentMsg,
+          projectId: 'default-project',
+          autoSave: shouldAutoSave,
+        }),
+      });
+      const data = await res.json();
+
+      if (!data.should_save) {
+        // LLM decided this is not worth saving
+        return;
+      }
+
+      if (shouldAutoSave && data.saved) {
+        // Already saved on the backend — show rich success toast
+        const catIcon  = data.categoryIcon  || '🧠';
+        const catColor = data.categoryColor || '#0071E3';
+        addToast(`${catIcon} Saved: "${data.title}" · ${data.category}`, 'success', 4500);
+        refreshMemories();
+        return;
+      }
+
+      // autoSave is OFF — show preview modal for user to confirm
+      setMemoryPreview({ extraction: data, userMessage: userMsg, agentResponse: agentMsg });
+    } catch (e) {
+      console.warn('[MemoryExtract]', e);
+    }
+  }, [addToast, refreshMemories]);
 
   /* ─────────────────────────────────────────────────────────────────────────
      fetchStats — GET /api/stats (for Navbar memory count)
@@ -509,10 +561,11 @@ export default function App() {
     eventSrc.addEventListener('done', async (e) => {
       eventSrc.close();
       const data = JSON.parse(e.data);
+      const agentContent = data.response || data.error || 'No response received.';
       const agentMsg = {
         id: Date.now() + 1,
         role: 'agent',
-        content: data.response || data.error || 'No response received.',
+        content: agentContent,
         retrievedMemories: data.retrievedMemories ?? [],
       };
       setMessages(prev => [...prev, agentMsg]);
@@ -520,6 +573,12 @@ export default function App() {
       fetchStats();
       setIsLoading(false);
       setStreamSteps([]);
+
+      // ── Trigger intelligent memory extraction (non-blocking) ──
+      const currentAutoSave = autoSave;
+      setTimeout(() => {
+        extractMemory(task, agentContent, currentAutoSave);
+      }, 800); // slight delay so UI settles first
     });
 
     eventSrc.addEventListener('error', (e) => {
@@ -1019,7 +1078,55 @@ export default function App() {
         theme,
         setTheme,
         identity,
+        autoSave,
+        toggleAutoSave,
+        extractMemory,
       }} />
+
+      {/* ── Memory Preview Modal (auto-save OFF path) ────────────────────── */}
+      {memoryPreview && (
+        <MemoryPreviewModal
+          extraction={memoryPreview.extraction}
+          isSaving={isSavingPreview}
+          onSkip={() => setMemoryPreview(null)}
+          onSave={async (edited) => {
+            setIsSavingPreview(true);
+            try {
+              const res = await fetch(`${import.meta.env.VITE_API_URL}/api/memory/save-confirmed`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  title:     edited.title,
+                  content:   edited.content,
+                  category:  edited.category,
+                  projectId: 'default-project',
+                  source:    'agent',
+                }),
+              });
+              const data = await res.json();
+              if (data.success) {
+                const catMeta = {
+                  'Architecture Decision': { icon: '🏗️' }, 'Bug Fix': { icon: '🐛' },
+                  'Coding Standard': { icon: '📐' }, 'Deployment History': { icon: '🚀' },
+                  'Feature Request': { icon: '✨' }, 'Team Discussion': { icon: '💬' },
+                  'Documentation Update': { icon: '📄' },
+                };
+                const icon = catMeta[edited.category]?.icon || '🧠';
+                const ts   = new Date(data.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                addToast(`${icon} Memory Saved! · ${edited.category} · ${ts}`, 'success', 5000);
+                refreshMemories();
+              } else {
+                addToast('Failed to save memory', 'error');
+              }
+            } catch (e) {
+              addToast('Failed to save memory', 'error');
+            } finally {
+              setIsSavingPreview(false);
+              setMemoryPreview(null);
+            }
+          }}
+        />
+      )}
 
       {/* ── CSS: animations, sidebar drawer, demo glow, print ───────────── */}
       <style>{`

@@ -167,13 +167,14 @@ function MemoriesUsed({ memories }) {
   );
 }
 
-function RatingBar({ onRate, messageId }) {
+function RatingBar({ onRate, messageId, onSave }) {
   const [activeRating, setActiveRating] = useState(null); // 'up' | 'down'
   const [pinned, setPinned] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [isHoveredUp, setIsHoveredUp] = useState(false);
   const [isHoveredDown, setIsHoveredDown] = useState(false);
   const [isHoveredPin, setIsHoveredPin] = useState(false);
+  const [isHoveredSave, setIsHoveredSave] = useState(false);
 
   const handleRate = (type) => {
     setActiveRating(type);
@@ -243,6 +244,25 @@ function RatingBar({ onRate, messageId }) {
         >
           📌
         </button>
+
+        {/* Save Memory */}
+        {onSave && (
+          <button
+            onClick={onSave}
+            onMouseEnter={() => setIsHoveredSave(true)}
+            onMouseLeave={() => setIsHoveredSave(false)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              background: isHoveredSave ? '#F5F5F7' : 'transparent', 
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius-pill)', padding: '4px 10px',
+              fontSize: 11.5, fontWeight: 600, color: 'var(--gray-mid)',
+              cursor: 'pointer', transition: 'all 0.15s', marginLeft: 6,
+            }}
+          >
+            <span>💾</span> Save Memory
+          </button>
+        )}
       </div>
 
       {activeRating === 'down' && (
@@ -294,7 +314,7 @@ function formatRelativeTime(dateInput) {
   return `${hours}:${minutes}`;
 }
 
-export default function MessageBubble({ msg, onRate }) {
+export default function MessageBubble({ msg, onRate, onSave }) {
   // Check if system message
   if (msg.role === 'system') {
     return (
@@ -497,7 +517,7 @@ export default function MessageBubble({ msg, onRate }) {
           <MemoriesUsed memories={msg.retrievedMemories} />
         )}
         
-        <RatingBar onRate={onRate} messageId={msg.id} />
+        <RatingBar onRate={onRate} messageId={msg.id} onSave={onSave} />
       </div>
     </div>
   );

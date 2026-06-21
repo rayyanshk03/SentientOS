@@ -1,8 +1,6 @@
 import { useOutletContext } from 'react-router-dom';
 import ChatWindow from '../components/chat/ChatWindow';
 import InputBar from '../components/chat/InputBar';
-import { ChatSkeleton } from '../components/ui/Skeleton';
-
 
 export default function ChatPage() {
   const {
@@ -17,7 +15,10 @@ export default function ChatPage() {
     activeProject,
     refreshMemories,
     panelBase,
-    identity
+    identity,
+    autoSave,
+    toggleAutoSave,
+    extractMemory,
   } = useOutletContext();
 
   return (
@@ -39,6 +40,9 @@ export default function ChatPage() {
             activeProject={activeProject}
             onUploadSuccess={refreshMemories}
             identity={identity}
+            autoSave={autoSave}
+            toggleAutoSave={toggleAutoSave}
+            extractMemory={extractMemory}
           />
         </main>
       </div>
