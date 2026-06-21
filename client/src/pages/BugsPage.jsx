@@ -189,7 +189,7 @@ export default function BugsPage() {
       </div>
 
       {/* Log Bug Modal */}
-      <Modal isOpen={isCreateOpen} onClose={() => !isCreating && setIsCreateOpen(false)} title="Log Bug Fix">
+      <Modal open={isCreateOpen} onClose={() => !isCreating && setIsCreateOpen(false)} title="Log Bug Fix">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <Input 
             label="Bug / Issue" 

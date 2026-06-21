@@ -45,7 +45,13 @@ async def create_bug(req: CreateBugRequest):
         category="Bug Fix",
         source="bug_module",
         project_id=req.projectId,
-        tags=["type:bug", f"author:{req.author}"]
+        tags=[
+            "type:bug", 
+            f"author:{req.author}",
+            f"title:{req.title}",
+            f"timestamp:{datetime.utcnow().isoformat()}",
+            f"description:{req.rootCause[:120]}..."
+        ]
     )
     
     if not session_id:
@@ -69,14 +75,14 @@ async def get_bugs(limit: int = 50):
         tag = s.get("tag") or {}
         # Look for custom "type:bug" or category "Bug Fix"
         if tag.get("type") == "bug" or tag.get("category") == "Bug Fix":
-            title = s.get("title") or tag.get("title") or "Unnamed Bug"
+            title = tag.get("title") or s.get("title") or "Unnamed Bug"
             description = tag.get("description", "A documented bug fix.")
             
             bugs.append({
                 "id": s.get("session_id") or s.get("id"),
                 "title": title,
                 "description": description,
-                "timestamp": s.get("updated_at") or s.get("created_at"),
+                "timestamp": tag.get("timestamp") or s.get("updated_at") or s.get("created_at"),
                 "author": tag.get("author", "Unknown"),
             })
             
