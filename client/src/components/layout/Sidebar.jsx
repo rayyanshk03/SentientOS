@@ -117,6 +117,7 @@ export default function Sidebar({
       items: [
         { id: 'chat', label: 'Assistant Chat', path: '/app', icon: <ChatIcon />, end: true },
         { id: 'pipeline', label: 'Ingestion Pipeline', path: '/app/pipeline', icon: <PipelineIcon /> },
+        { id: 'demo', label: 'Judge Demo Mode', path: '/app/demo', icon: <span style={{fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18}}>🏆</span> },
       ]
     },
     {
@@ -125,6 +126,7 @@ export default function Sidebar({
         { id: 'vault', label: 'Memory Directory', path: '/app/vault', icon: <BrainIcon size={18} /> },
         { id: 'adr', label: 'Architecture Records', path: '/app/adr', icon: <span style={{fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18}}>🏛️</span> },
         { id: 'bugs', label: 'Bug Fixes', path: '/app/bugs', icon: <span style={{fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18}}>🐛</span> },
+        { id: 'knowledge', label: 'Engineering Knowledge', path: '/app/knowledge', icon: <span style={{fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18}}>📚</span> },
         { id: 'documents', label: 'Documents Library', path: '/app/documents', icon: <DocumentsIcon /> },
       ]
     },
@@ -134,7 +136,6 @@ export default function Sidebar({
         { id: 'metrics', label: 'System Metrics', path: '/app/metrics', icon: <MetricsIcon /> },
         { id: 'history', label: 'Chat History', path: '/app/history', icon: <HistoryIcon /> },
         { id: 'llm-settings', label: 'AI Settings', path: '/app/llm-settings', icon: <LLMSettingsIcon /> },
-        { id: 'configuration', label: 'System Config', path: '/app/configuration', icon: <ConfigurationIcon /> },
       ]
     }
   ];

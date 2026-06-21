@@ -17,6 +17,8 @@ import ConfigurationPage from './pages/ConfigurationPage.jsx'
 import MemoriesPage from './pages/MemoriesPage.jsx'
 import AdrsPage from './pages/AdrsPage.jsx'
 import BugsPage from './pages/BugsPage.jsx'
+import KnowledgePage from './pages/KnowledgePage.jsx'
+import DemoPage from './pages/DemoPage.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -29,6 +31,8 @@ createRoot(document.getElementById('root')).render(
           <Route path="vault" element={<MemoriesPage />} />
           <Route path="adr" element={<AdrsPage />} />
           <Route path="bugs" element={<BugsPage />} />
+          <Route path="knowledge" element={<KnowledgePage />} />
+          <Route path="demo" element={<DemoPage />} />
           <Route path="documents" element={<DocumentsPage />} />
           <Route path="user-management" element={<UserManagementPage />} />
           <Route path="metrics" element={<MetricsPage />} />

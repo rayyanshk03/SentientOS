@@ -224,11 +224,18 @@ CONTEXT FROM MEMORY:
 {memory_summary}
 
 RESPONSE RULES:
-• Simple question → 1-3 plain sentences, no headers.
-• Explanation / overview → short paragraphs, bullets ok.
-• Technical plan → structured: summary → steps → code snippets.
-NEVER use robotic headers for simple questions.
-ALWAYS match tone to the question."""
+1. Provide the main response according to the user's task (keep it concise and helpful).
+2. AT THE END of every response, you MUST append a "Reasoning Trace" section formatted exactly like this:
+
+### Reasoning Trace
+**Memories Retrieved:**
+- [List the titles or topics of the context memories you used]
+
+**Reasoning:**
+[Explain briefly how these specific memories influenced your generated solution]
+
+Even if no memories were retrieved, include the trace and state that you relied on general knowledge.
+ALWAYS include this section."""
 
     if on_step:
         await on_step('🧠 Calling AI...')
