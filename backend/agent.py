@@ -200,7 +200,21 @@ async def run_agent(user_task: str, persona: str = 'architect', chat_history: li
 
     parcle_memories = []
     try:
-        parcle_memories = await asyncio.wait_for(query_memory(query_string), timeout=10.0)
+        raw_memories = await asyncio.wait_for(query_memory(query_string), timeout=10.0)
+        
+        # Filter out soft-deleted memories
+        deleted_ids = set()
+        cols = get_collections()
+        if cols and cols.get("deleted_memories") is not None:
+            deleted_docs = cols["deleted_memories"].find({}, {"memoryId": 1})
+            deleted_ids = {doc["memoryId"] for doc in deleted_docs}
+            
+        for m in raw_memories:
+            citations = m.get("citations", [])
+            citation_ids = [c.get("id", c.get("session_id", str(c))) for c in citations]
+            if not (citation_ids and citation_ids[0] in deleted_ids):
+                parcle_memories.append(m)
+                
     except asyncio.TimeoutError:
         print("[Agent] ⚠️ Parcle query timed out — continuing without memory.")
     except Exception as e:
@@ -222,7 +236,7 @@ async def run_agent(user_task: str, persona: str = 'architect', chat_history: li
     memory_summary = 'No prior decisions found for this project yet.'
     if parcle_memories:
         memory_summary = "\n\n".join(
-            f"Memory {i+1} (confidence: {round(m.get('confidence', 0)*100)}%):\n{m.get('answer', '')}"
+            f"Memory {i+1} (ID: {m.get('citations', [{}])[0].get('session_id', m.get('citations', [{}])[0].get('id', 'unknown'))} | confidence: {round(m.get('confidence', 0)*100)}%):\n{m.get('answer', '')}"
             for i, m in enumerate(parcle_memories)
         )
 
@@ -270,6 +284,9 @@ RESPONSE RULES:
 **Reasoning:**
 [Explain briefly how these specific memories influenced your generated solution]
 
+**Obsolete Memories:**
+- [If the user's current task UPDATES, INVALIDATES, or REPLACES any of the provided memories, list their exact IDs here so they can be deleted. If none, write "None". Example: sess_abc123]
+
 Even if no memories were retrieved, include the trace and state that you relied on general knowledge.
 ALWAYS include this section."""
 
@@ -290,6 +307,26 @@ ALWAYS include this section."""
 
     if on_step:
         await on_step('💾 Saving decision to Parcle...')
+
+    # Check for obsolete memories to soft-delete
+    import re
+    obsolete_section = re.search(r'\*\*Obsolete Memories:\*\*\s*(.*?)(?=\n\n|\Z)', agent_response, re.DOTALL | re.IGNORECASE)
+    if obsolete_section:
+        obsolete_text = obsolete_section.group(1)
+        obsolete_ids = re.findall(r'sess_[a-zA-Z0-9]+', obsolete_text)
+        if obsolete_ids:
+            try:
+                cols = get_collections()
+                if cols and cols.get("deleted_memories") is not None:
+                    for obs_id in obsolete_ids:
+                        cols["deleted_memories"].update_one(
+                            {"memoryId": obs_id},
+                            {"$set": {"memoryId": obs_id, "deletedAt": datetime.utcnow(), "reason": "obsolete_by_agent"}},
+                            upsert=True
+                        )
+                    print(f"[Agent] 🗑️ Soft-deleted obsolete memories: {obsolete_ids}")
+            except Exception as e:
+                print(f"[Agent] ⚠️ Failed to soft-delete obsolete memories: {e}")
 
     today = datetime.utcnow().strftime("%Y-%m-%d")
     decision_title = f"{user_task[:77]}..." if len(user_task) > 80 else user_task
@@ -312,24 +349,6 @@ ALWAYS include this section."""
         auto_category = "Team Discussion"
     else:
         auto_category = "General"
-
-    session_id = None
-    try:
-        session_id = await asyncio.wait_for(
-            save_memory(
-                title=decision_title,
-                content=agent_response,
-                tags=[persona or 'architect', f"date:{today}"],
-                category=auto_category,
-                source="agent",
-                project_id=os.getenv("ENTER_PROJECT_ID", "eternal-architect"),
-            ),
-            timeout=10.0
-        )
-    except asyncio.TimeoutError:
-        print("[Agent] ⚠️ Parcle save timed out — skipping.")
-    except Exception as e:
-        print(f"[Agent] ⚠️ Failed to save to Parcle: {e}")
 
     time_taken = int((time.time() - start_time) * 1000)
 
