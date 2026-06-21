@@ -170,9 +170,25 @@ async def run_agent(user_task: str, persona: str = 'architect', chat_history: li
     if on_step:
         await on_step('🔍 Querying Parcle memory...')
 
+    query_string = user_task
+    task_lower = user_task.lower()
+    if any(w in task_lower for w in ["pdf", "upload", "document", "file", "summarize"]):
+        try:
+            cols = get_collections()
+            if cols and cols.get("uploads") is not None:
+                recent = cols["uploads"].find_one({}, sort=[("uploadedAt", -1)])
+                if recent:
+                    filename = recent.get("filename", "")
+                    if filename:
+                        query_string = f"{user_task} (Context: {filename})"
+                        if on_step:
+                            await on_step(f'📄 Searching with recent upload: {filename}')
+        except Exception:
+            pass
+
     parcle_memories = []
     try:
-        parcle_memories = await asyncio.wait_for(query_memory(user_task), timeout=10.0)
+        parcle_memories = await asyncio.wait_for(query_memory(query_string), timeout=10.0)
     except asyncio.TimeoutError:
         print("[Agent] ⚠️ Parcle query timed out — continuing without memory.")
     except Exception as e:
