@@ -117,3 +117,13 @@ async def upload_file(file: UploadFile = File(...), projectId: str = Form("defau
         "totalWords": len(text.split())
     }
 
+@router.get("/uploaded-files")
+async def list_uploaded_files():
+    try:
+        cols = get_collections()
+        if cols and cols.get("uploads") is not None:
+            cursor = cols["uploads"].find({}, {"_id": 0}).sort("uploadedAt", -1)
+            return {"uploads": list(cursor)}
+        return {"uploads": []}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -12,17 +12,17 @@ export default function DocumentsPage() {
   const fetchUploads = async () => {
     setIsLoading(true);
     try {
-      // In our Mongo backend, uploaded files list might be saved in collections["uploads"]
-      // Let's call /api/uploads or simulate files list
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/memories?limit=20`);
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/uploaded-files`);
       const data = await res.json();
       
-      // Mock documents list if empty
-      const docs = [
-        { id: 'doc-1', name: 'SentientOS_Architecture_V2.pdf', size: '2.4 MB', chunks: 14, date: 'June 21, 2026', status: 'Indexed' },
-        { id: 'doc-2', name: 'Gemini_API_Integration.txt', size: '12 KB', chunks: 3, date: 'June 20, 2026', status: 'Indexed' },
-        { id: 'doc-3', name: 'Parcle_Vector_Schema.md', size: '4 KB', chunks: 2, date: 'June 19, 2026', status: 'Indexed' }
-      ];
+      const docs = data.uploads.map(u => ({
+        id: u.filename,
+        name: u.filename,
+        size: u.totalWords ? `${(u.totalWords * 5 / 1024).toFixed(1)} KB` : 'Unknown',
+        chunks: u.chunksStored || 0,
+        date: new Date(u.uploadedAt).toLocaleDateString(),
+        status: 'Indexed'
+      }));
       setUploads(docs);
     } catch {
       setUploads([]);
