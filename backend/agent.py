@@ -69,6 +69,9 @@ async def call_gemini(system_prompt: str, user_message: str, chat_history: list 
             if next_model:
                 print(f"[Gemini] Rate limit hit. Falling back to {next_model}...")
                 return await call_gemini(system_prompt, user_message, chat_history, model_name=next_model)
+            else:
+                print(f"[Gemini] All fallbacks exhausted (429 Quota Exceeded). Returning mock response.")
+                return "I'm currently experiencing high traffic (API Quota Exceeded). This is a mock response so you can continue testing the UI without being blocked!"
         
         raise Exception(f"Gemini API error {e.code}: {body[:300]}")
 
