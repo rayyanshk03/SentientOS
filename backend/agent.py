@@ -376,7 +376,7 @@ ALWAYS include this section."""
 
     return {
         "response": agent_response,
-        "sessionId": session_id,
+        "sessionId": None,
         "memoriesUsed": len(parcle_memories),
         "retrievedMemories": retrieved_memories
     }
