@@ -43,6 +43,7 @@ async def call_groq(system_prompt: str, user_message: str, chat_history: list = 
         headers={
             "Content-Type": "application/json",
             "Authorization": f"Bearer {api_key}",
+            "User-Agent": "SentientOS/1.0",
         },
         method="POST"
     )
