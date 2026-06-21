@@ -1,14 +1,25 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { Outlet } from 'react-router-dom';
+import { useTheme } from './hooks/useTheme';
+import Navbar    from './components/layout/Navbar';
+import Sidebar   from './components/layout/Sidebar';
+import ChatWindow from './components/chat/ChatWindow';
+import InputBar   from './components/chat/InputBar';
+import Modal  from './components/ui/Modal';
+import Button from './components/ui/Button';
+import Input  from './components/ui/Input';
+import StandupPanel from './components/standup/StandupPanel';
+import AppLoader from './components/ui/AppLoader';
 
+/* ─── Persona definitions ───────────────────────────────────────────────────── */
 const PERSONAS = [
   { id: 'architect', label: 'Eternal Architect', emoji: '🏛️', subtitle: 'AI-powered system orchestrator' },
-  { id: 'debugger', label: 'Zero-Sync Debugger', emoji: '🐛', subtitle: 'Finds and fixes complex bugs' },
-  { id: 'docs', label: 'Docs Writer', emoji: '📝', subtitle: 'Writes documentation & READMEs' },
-  { id: 'ui', label: 'UI Enforcer', emoji: '🎨', subtitle: 'Focuses on design consistency' }
+  { id: 'debugger',  label: 'Zero-Sync Debugger', emoji: '🐛', subtitle: 'Finds and fixes complex bugs' },
+  { id: 'docs',      label: 'Docs Writer',         emoji: '📝', subtitle: 'Writes documentation & READMEs' },
+  { id: 'ui',        label: 'UI Enforcer',          emoji: '🎨', subtitle: 'Focuses on design consistency' },
 ];
 
-/* ─── tiny helpers ─────────────────────────────────────────────────────────── */
-
+/* ─── Memory helpers ────────────────────────────────────────────────────────── */
 function formatDate(raw) {
   if (!raw) return '';
   const d = new Date(raw);
@@ -17,9 +28,9 @@ function formatDate(raw) {
 }
 
 function extractTitle(memory) {
-  if (memory.title) return memory.title;
-  if (memory.tag?.title) return memory.tag.title;
-  if (memory.tag?.type) return memory.tag.type.charAt(0).toUpperCase() + memory.tag.type.slice(1);
+  if (memory.title)         return memory.title;
+  if (memory.tag?.title)    return memory.tag.title;
+  if (memory.tag?.type)     return memory.tag.type.charAt(0).toUpperCase() + memory.tag.type.slice(1);
   return 'Memory';
 }
 
@@ -29,7 +40,7 @@ function extractDate(memory) {
 }
 
 function extractContent(memory) {
-  if (memory.content) return memory.content.slice(0, 100);
+  if (memory.content)                return memory.content.slice(0, 100);
   if (memory.messages?.[0]?.content) return memory.messages[0].content.slice(0, 100);
   const tagStr = Object.entries(memory.tag || {})
     .filter(([k]) => !['timestamp', 'project'].includes(k))
@@ -38,443 +49,334 @@ function extractContent(memory) {
   return tagStr.slice(0, 100) || 'No preview available.';
 }
 
-/* ─── ErrorToast ────────────────────────────────────────────────────────────── */
-function ErrorToast({ message, onDismiss }) {
+/* ══════════════════════════════════════════════════════════════════════════════
+   ToastContainer — multi-toast stack at bottom-center
+══════════════════════════════════════════════════════════════════════════════ */
+const TOAST_ICONS = { success: '✅', error: '⚠️', info: 'ℹ️', warning: '🟡' };
+
+function ToastItem({ toast, onDismiss }) {
   const [exiting, setExiting] = useState(false);
+  const duration = toast.duration ?? 3500;
 
   const dismiss = useCallback(() => {
     setExiting(true);
-    setTimeout(onDismiss, 220);
+    setTimeout(onDismiss, 280);
   }, [onDismiss]);
 
-  // Auto-dismiss after 4 s
   useEffect(() => {
-    const t = setTimeout(dismiss, 4000);
+    const t = setTimeout(dismiss, duration);
     return () => clearTimeout(t);
-  }, [dismiss]);
+  }, [dismiss, duration]);
+
+  const accentColor = toast.type === 'error'   ? '#FF3B30'
+                    : toast.type === 'success' ? '#34C759'
+                    : toast.type === 'warning' ? '#FF9500'
+                    : '#0071E3';
 
   return (
     <div
       className={exiting ? 'toast-exit' : 'toast-enter'}
       style={{
-        position: 'fixed',
-        bottom: 28,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 999,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        padding: '12px 18px',
-        borderRadius: 14,
-        background: '#1D1D1F',
-        color: '#fff',
-        fontSize: 13.5,
-        fontWeight: 500,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.28)',
-        maxWidth: 'calc(100vw - 40px)',
-        whiteSpace: 'nowrap',
+        display: 'flex', flexDirection: 'column',
+        borderRadius: 12, overflow: 'hidden',
+        background: '#1D1D1F', color: '#FFFFFF',
+        fontSize: 13.5, fontWeight: 500,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
+        maxWidth: 360, minWidth: 240,
         pointerEvents: 'auto',
+        borderLeft: `3px solid ${accentColor}`,
       }}
     >
-      <span style={{ fontSize: 16 }}>⚠️</span>
-      {message}
-      <button
-        onClick={dismiss}
-        style={{
-          marginLeft: 6,
-          background: 'rgba(255,255,255,0.15)',
-          border: 'none',
-          borderRadius: 6,
-          color: '#fff',
-          fontSize: 12,
-          fontWeight: 600,
-          padding: '3px 8px',
-          cursor: 'pointer',
-          fontFamily: 'inherit',
-        }}
-      >
-        Dismiss
-      </button>
-    </div>
-  );
-}
-
-/* ─── LoadingSpinner ────────────────────────────────────────────────────────── */
-function LoadingSpinner() {
-  return (
-    <div className="msg-enter" style={{ display: 'flex', alignItems: 'flex-end', gap: 10 }}>
-      {/* Avatar */}
-      <div style={{
-        width: 32, height: 32, borderRadius: '50%',
-        background: 'linear-gradient(135deg, #0071E3 0%, #34aadc 100%)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        flexShrink: 0, fontSize: 14, fontWeight: 700, color: '#fff',
-        boxShadow: '0 2px 8px rgba(0,113,227,0.35)',
-      }}>
-        A
-      </div>
-      {/* Spinner bubble */}
-      <div style={{
-        background: '#F5F5F7',
-        borderRadius: '18px 18px 18px 4px',
-        padding: '14px 18px',
-        display: 'flex', alignItems: 'center', gap: 10,
-        boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-      }}>
-        {/* Arc spinner */}
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"
-          style={{ animation: 'spin 0.75s linear infinite', flexShrink: 0 }}>
-          <circle cx="9" cy="9" r="7" stroke="#E5E5EA" strokeWidth="2.5" />
-          <path d="M9 2A7 7 0 0 1 16 9" stroke="#0071E3" strokeWidth="2.5"
-            strokeLinecap="round" />
-        </svg>
-        {/* Animated dots for text */}
-        <span style={{ fontSize: 13.5, color: '#6E6E73', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
-          Thinking + querying memory
-          <span className="dot-1" style={{ display: 'inline-block', width: 4, height: 4, borderRadius: '50%', background: '#86868B' }} />
-          <span className="dot-2" style={{ display: 'inline-block', width: 4, height: 4, borderRadius: '50%', background: '#86868B' }} />
-          <span className="dot-3" style={{ display: 'inline-block', width: 4, height: 4, borderRadius: '50%', background: '#86868B' }} />
+      {/* Main row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px 10px 14px' }}>
+        <span style={{ fontSize: 15, flexShrink: 0 }}>{TOAST_ICONS[toast.type] ?? '💬'}</span>
+        <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.4 }}>
+          {toast.message}
         </span>
+        <button
+          onClick={dismiss}
+          style={{
+            marginLeft: 4, background: 'rgba(255,255,255,0.10)',
+            border: 'none', borderRadius: 5, color: '#FFFFFF',
+            fontSize: 11, fontWeight: 600, padding: '2px 7px',
+            cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0,
+            transition: 'background 0.15s ease',
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.10)'}
+        >✕</button>
       </div>
-    </div>
-  );
-}
-
-/* ─── MemoryContext ─────────────────────────────────────────────────────────── */
-function MemoryContext({ memories }) {
-  const [open, setOpen] = useState(false);
-  if (!memories || memories.length === 0) return null;
-
-  return (
-    <div style={{ marginTop: 6, marginLeft: 42 }}>
-      <button
-        onClick={() => setOpen(o => !o)}
-        style={{
-          display: 'inline-flex', alignItems: 'center', gap: 5,
-          padding: '4px 10px', borderRadius: 99,
-          border: '1px solid',
-          borderColor: open ? '#0071E3' : '#D2D2D7',
-          background: open ? '#E8F1FB' : '#F5F5F7',
-          color: open ? '#0071E3' : '#6E6E73',
-          fontSize: 11.5, fontWeight: 600,
-          cursor: 'pointer', transition: 'all 0.15s ease',
-          fontFamily: 'inherit', letterSpacing: '0.01em', userSelect: 'none',
-        }}
-      >
-        <span style={{ fontSize: 12 }}>📎</span>
-        {memories.length} {memories.length === 1 ? 'memory' : 'memories'} used
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
-          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s ease' }}>
-          <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4"
-            strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
-
-      {open && (
-        <div className="msg-enter" style={{
-          marginTop: 6, background: '#fff',
-          border: '1px solid #E5E5EA', borderRadius: 12,
-          overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', maxWidth: 380,
-        }}>
-          <div style={{
-            padding: '7px 12px', background: '#F5F5F7',
-            borderBottom: '1px solid #E5E5EA',
-            fontSize: 10.5, fontWeight: 700, color: '#86868B',
-            textTransform: 'uppercase', letterSpacing: '0.06em',
-          }}>
-            Retrieved context from Parcle
-          </div>
-          {memories.map((m, i) => (
-            <div key={i} style={{
-              padding: '9px 12px',
-              borderBottom: i < memories.length - 1 ? '1px solid #F2F2F7' : 'none',
-              display: 'flex', alignItems: 'flex-start', gap: 8,
-            }}>
-              <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, paddingTop: 1 }}>
-                <div style={{ width: 28, height: 4, borderRadius: 99, background: '#E5E5EA', overflow: 'hidden' }}>
-                  <div style={{
-                    height: '100%', width: `${m.confidence ?? 0}%`,
-                    background: m.confidence >= 70 ? '#34C759' : m.confidence >= 40 ? '#FF9500' : '#FF3B30',
-                    borderRadius: 99, transition: 'width 0.4s ease',
-                  }} />
-                </div>
-                <span style={{ fontSize: 9.5, color: '#86868B', fontWeight: 500 }}>{m.confidence ?? 0}%</span>
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{
-                  margin: 0, fontSize: 12.5, fontWeight: 600, color: '#1D1D1F',
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                }}>
-                  {m.title || 'Past decision'}
-                </p>
-                {m.citationIds?.length > 0 && (
-                  <p style={{ margin: '2px 0 0', fontSize: 11, color: '#86868B', fontWeight: 400 }}>
-                    {m.citationIds.slice(0, 2).map(id => `ID: ${String(id).slice(0, 12)}…`).join(' · ')}
-                  </p>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ─── MessageBubble ─────────────────────────────────────────────────────────── */
-function MessageBubble({ msg }) {
-  const isUser = msg.role === 'user';
-  return (
-    <div className="msg-enter" style={{ display: 'flex', flexDirection: 'column', alignItems: isUser ? 'flex-end' : 'flex-start' }}>
-      <div style={{ display: 'flex', flexDirection: isUser ? 'row-reverse' : 'row', alignItems: 'flex-end', gap: 10, maxWidth: '100%' }}>
-        {!isUser && (
-          <div style={{
-            width: 32, height: 32, borderRadius: '50%',
-            background: 'linear-gradient(135deg, #0071E3 0%, #34aadc 100%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0, fontSize: 14, fontWeight: 700, color: '#fff',
-            boxShadow: '0 2px 8px rgba(0,113,227,0.35)',
-          }}>
-            A
-          </div>
-        )}
+      {/* Auto-dismiss progress bar */}
+      <div style={{ height: 2, background: 'rgba(255,255,255,0.08)' }}>
         <div style={{
-          maxWidth: '72%',
-          padding: '12px 16px',
-          borderRadius: isUser ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-          background: isUser ? '#0071E3' : '#F5F5F7',
-          color: isUser ? '#fff' : '#1D1D1F',
-          fontSize: 14.5, lineHeight: 1.6, fontWeight: 400,
-          boxShadow: isUser ? '0 2px 12px rgba(0,113,227,0.30)' : '0 1px 3px rgba(0,0,0,0.08)',
-          whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-        }}>
-          {msg.content}
-        </div>
-        {isUser && (
-          <div style={{
-            width: 32, height: 32, borderRadius: '50%',
-            background: '#E8F1FB',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0, fontSize: 13, fontWeight: 600, color: '#0071E3',
-            border: '1.5px solid #0071E3',
-          }}>
-            Y
-          </div>
-        )}
+          height: '100%',
+          background: accentColor,
+          animation: `toastProgress ${duration}ms linear forwards`,
+          transformOrigin: 'left',
+        }} />
       </div>
-      {!isUser && <MemoryContext memories={msg.retrievedMemories} />}
     </div>
   );
 }
 
-/* ─── MemoryCard ────────────────────────────────────────────────────────────── */
-function MemoryCard({ memory }) {
-  const [hovered, setHovered] = useState(false);
-  const title   = extractTitle(memory);
-  const date    = extractDate(memory);
-  const preview = extractContent(memory);
-
-  return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        background: '#fff', borderRadius: 14, padding: '14px 16px',
-        border: '1px solid', borderColor: hovered ? '#0071E3' : '#E5E5EA',
-        boxShadow: hovered ? '0 4px 16px rgba(0,113,227,0.12)' : '0 1px 3px rgba(0,0,0,0.06)',
-        cursor: 'default',
-        transition: 'border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease',
-        transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-        <span style={{
-          fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em',
-          textTransform: 'uppercase', color: '#0071E3',
-          background: '#E8F1FB', padding: '2px 8px', borderRadius: 99,
-        }}>
-          {memory.tag?.type || 'decision'}
-        </span>
-        {date && <span style={{ fontSize: 11, color: '#86868B', fontWeight: 400 }}>{date}</span>}
-      </div>
-      <p style={{ fontSize: 13.5, fontWeight: 600, color: '#1D1D1F', margin: '0 0 5px', lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-        {title}
-      </p>
-      <p style={{ fontSize: 12.5, color: '#6E6E73', margin: 0, lineHeight: 1.55, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-        {preview}
-      </p>
-    </div>
-  );
-}
-
-/* ─── SearchResultCard ──────────────────────────────────────────────────────── */
-function SearchResultCard({ result }) {
-  const [hovered, setHovered] = useState(false);
-  const preview = result.content
-    ? result.content.split('\n').filter(Boolean)[0]?.slice(0, 120) || 'No preview.'
-    : 'No preview.';
-  const confColor = result.confidence >= 70 ? '#34C759' : result.confidence >= 40 ? '#FF9500' : '#FF3B30';
-
-  return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        background: '#fff', borderRadius: 14, padding: '13px 15px',
-        border: '1px solid', borderColor: hovered ? '#0071E3' : '#E5E5EA',
-        boxShadow: hovered ? '0 4px 14px rgba(0,113,227,0.12)' : '0 1px 3px rgba(0,0,0,0.06)',
-        transition: 'all 0.18s ease',
-        transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
-      }}
-    >
-      {/* Top row: type pill + confidence */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
-        <span style={{
-          fontSize: 10.5, fontWeight: 600, letterSpacing: '0.04em',
-          textTransform: 'uppercase', color: '#0071E3',
-          background: '#E8F1FB', padding: '2px 8px', borderRadius: 99,
-        }}>
-          search result
-        </span>
-        {/* Confidence badge */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-          <div style={{ width: 36, height: 4, borderRadius: 99, background: '#E5E5EA', overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${result.confidence}%`, background: confColor, borderRadius: 99, transition: 'width 0.4s ease' }} />
-          </div>
-          <span style={{ fontSize: 10.5, color: '#86868B', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
-            {result.confidence}%
-          </span>
-        </div>
-      </div>
-
-      {/* Title */}
-      <p style={{
-        margin: '0 0 5px', fontSize: 13.5, fontWeight: 600, color: '#1D1D1F',
-        lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-      }}>
-        {result.title}
-      </p>
-
-      {/* Content preview */}
-      <p style={{
-        margin: 0, fontSize: 12, color: '#6E6E73', lineHeight: 1.55,
-        display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-      }}>
-        {preview}
-      </p>
-
-      {/* Citation IDs */}
-      {result.citationIds?.length > 0 && (
-        <p style={{ margin: '6px 0 0', fontSize: 10.5, color: '#86868B', fontWeight: 400, fontVariantNumeric: 'tabular-nums' }}>
-          {result.citationIds.slice(0, 2).map(id => `ID: ${String(id).slice(0, 14)}…`).join(' · ')}
-        </p>
-      )}
-    </div>
-  );
-}
-
-/* ─── SidebarEmptyState ─────────────────────────────────────────────────────── */
-function SidebarEmptyState() {
+function ToastContainer({ toasts, onDismiss }) {
+  if (!toasts.length) return null;
   return (
     <div style={{
-      flex: 1, display: 'flex', flexDirection: 'column',
-      alignItems: 'center', justifyContent: 'center',
-      gap: 12, padding: '32px 24px', textAlign: 'center',
+      position: 'fixed', bottom: 24, right: 24,
+      display: 'flex', flexDirection: 'column', gap: 10,
+      zIndex: 9999, pointerEvents: 'none',
+      alignItems: 'flex-end',
     }}>
-      {/* Icon */}
-      <div style={{
-        width: 56, height: 56, borderRadius: 16,
-        background: 'linear-gradient(135deg, #E8F1FB 0%, #F5F5F7 100%)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: '0 2px 8px rgba(0,113,227,0.10)',
+      {toasts.map(t => (
+        <ToastItem key={t.id} toast={t} onDismiss={() => onDismiss(t.id)} />
+      ))}
+    </div>
+  );
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   OnboardingModal — shown once on first visit
+══════════════════════════════════════════════════════════════════════════════ */
+function OnboardingModal({ onComplete }) {
+  const [step, setStep] = useState(0);
+
+  const steps = [
+    {
+      emoji: '🧠',
+      title: 'Welcome to Eternal Architect',
+      body: 'Your AI-powered system orchestrator that remembers every architectural decision you make — forever.',
+    },
+    {
+      emoji: '💬',
+      title: 'Chat with context',
+      body: 'Ask anything. The agent searches your entire decision history before answering, so it never contradicts past choices.',
+    },
+    {
+      emoji: '📌',
+      title: 'Decisions are permanent',
+      body: 'Every response is automatically saved to memory. Use the sidebar to browse, search, and revisit past decisions at any time.',
+    },
+    {
+      emoji: '⚡',
+      title: 'You\'re all set!',
+      body: 'Switch personas to change the agent\'s expertise. Try the Demo button to see it in action.',
+    },
+  ];
+
+  const current = steps[step];
+  const isLast  = step === steps.length - 1;
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 10000,
+      background: 'rgba(0,0,0,0.55)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      backdropFilter: 'blur(4px)',
+    }}>
+      <div className="toast-enter" style={{
+        background: 'var(--white)', borderRadius: 24,
+        padding: '40px 36px', maxWidth: 440, width: '90vw',
+        boxShadow: '0 24px 64px rgba(0,0,0,0.22)',
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        textAlign: 'center', gap: 20,
       }}>
-        <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
-          <rect x="2" y="2" width="22" height="22" rx="5" stroke="#0071E3" strokeWidth="1.5" strokeOpacity="0.6" />
-          <path d="M7 10h12M7 13h12M7 16h7" stroke="#0071E3" strokeWidth="1.5" strokeLinecap="round" strokeOpacity="0.6" />
-          <circle cx="20" cy="20" r="5" fill="#E8F1FB" stroke="#0071E3" strokeWidth="1.2" />
-          <path d="M18.5 20h3M20 18.5v3" stroke="#0071E3" strokeWidth="1.2" strokeLinecap="round" />
-        </svg>
-      </div>
-      <div>
-        <p style={{ margin: '0 0 5px', fontSize: 13.5, fontWeight: 700, color: '#1D1D1F' }}>
-          No memories yet
-        </p>
-        <p style={{ margin: 0, fontSize: 12, color: '#86868B', lineHeight: 1.6, maxWidth: 200 }}>
-          Start a conversation — every agent decision is saved here automatically.
-        </p>
-      </div>
-      {/* Visual hint arrow */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path d="M7 2v10M3 8l4 4 4-4" stroke="#0071E3" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" strokeOpacity="0.7" />
-        </svg>
-        <span style={{ fontSize: 11, color: '#0071E3', fontWeight: 500, opacity: 0.7 }}>
-          Try asking a question →
-        </span>
+        {/* Progress dots */}
+        <div style={{ display: 'flex', gap: 6, alignSelf: 'flex-start' }}>
+          {steps.map((_, i) => (
+            <div key={i} style={{
+              width: i === step ? 20 : 6, height: 6, borderRadius: 99,
+              background: i === step ? 'var(--blue)' : 'var(--border)',
+              transition: 'all 0.3s ease',
+            }} />
+          ))}
+        </div>
+
+        {/* Emoji */}
+        <div style={{
+          width: 72, height: 72, borderRadius: 20,
+          background: 'linear-gradient(135deg, var(--blue-light) 0%, var(--gray-light) 100%)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 36,
+          boxShadow: '0 4px 16px rgba(0,113,227,0.15)',
+        }}>
+          {current.emoji}
+        </div>
+
+        <div>
+          <h2 style={{ margin: '0 0 10px', fontSize: 22, fontWeight: 700, color: 'var(--black)', lineHeight: 1.3 }}>
+            {current.title}
+          </h2>
+          <p style={{ margin: 0, fontSize: 15, color: 'var(--gray-mid)', lineHeight: 1.65 }}>
+            {current.body}
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', gap: 10, width: '100%' }}>
+          {step > 0 && (
+            <Button variant="ghost" onClick={() => setStep(s => s - 1)} size="md">
+              ← Back
+            </Button>
+          )}
+          <Button
+            variant="primary"
+            size="md"
+            onClick={() => isLast ? onComplete() : setStep(s => s + 1)}
+            style={{ flex: 1 }}
+          >
+            {isLast ? 'Get Started →' : 'Next →'}
+          </Button>
+        </div>
       </div>
     </div>
   );
 }
 
-/* ─── Main App ──────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════════
+   KeyboardShortcutsModal
+══════════════════════════════════════════════════════════════════════════════ */
+const SHORTCUTS = [
+  { keys: ['⌘', 'K'],      desc: 'Focus search / input' },
+  { keys: ['⌘', '↵'],      desc: 'Submit message' },
+  { keys: ['⌘', 'D'],      desc: 'Run / stop demo' },
+  { keys: ['⌘', 'S'],      desc: 'Save decision' },
+  { keys: ['⌘', 'E'],      desc: 'Export report' },
+  { keys: ['⌘', '1–4'],    desc: 'Switch persona' },
+  { keys: ['Esc'],          desc: 'Close modal / clear input' },
+  { keys: ['?'],            desc: 'Open this help menu' },
+];
+
+function ShortcutsModal({ onClose }) {
+  return (
+    <Modal open onClose={onClose} title="Keyboard Shortcuts">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {SHORTCUTS.map(({ keys, desc }) => (
+          <div key={desc} style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '8px 2px', borderBottom: '1px solid var(--border)',
+          }}>
+            <span style={{ fontSize: 13.5, color: 'var(--gray-dark)' }}>{desc}</span>
+            <div style={{ display: 'flex', gap: 4 }}>
+              {keys.map((k, i) => (
+                <kbd key={i} style={{
+                  background: 'var(--gray-light)', border: '1px solid var(--border)',
+                  borderRadius: 6, padding: '2px 7px', fontSize: 12,
+                  fontWeight: 600, color: 'var(--black)', fontFamily: 'inherit',
+                }}>{k}</kbd>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </Modal>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   Main App
+══════════════════════════════════════════════════════════════════════════════ */
 export default function App() {
-  const [memories, setMemories]           = useState([]);
-  const [memoriesLoading, setMemoriesLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen]     = useState(false);
-  const [toast, setToast]                 = useState(null);
 
-  // Search state
-  const [searchQuery, setSearchQuery]     = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [isSearching, setIsSearching]     = useState(false);
-  const [searchDone, setSearchDone]       = useState(false); // true after a search completes
-
-  const [messages, setMessages] = useState([{
-    id: 'welcome',
-    role: 'agent',
+  /* ── Core chat state ── */
+  const [sessionId, setSessionId] = useState(() => {
+    const saved = sessionStorage.getItem('sessionId');
+    if (saved) return saved;
+    const newId = `sess-${Date.now()}-${Math.floor(Math.random()*1000)}`;
+    sessionStorage.setItem('sessionId', newId);
+    return newId;
+  });
+  const [messages, setMessages]         = useState([{
+    id: 'welcome', role: 'agent',
     content: "Hello! I'm the Eternal Architect — your AI system orchestrator. I can answer questions, make architecture decisions, and save every decision to memory. What would you like to work on?",
   }]);
-  const [input, setInput]       = useState('');
-  const [isThinking, setIsThinking] = useState(false);
-  const [statusFeed, setStatusFeed] = useState('');
+  const [isLoading, setIsLoading]       = useState(false);
+  const [streamSteps, setStreamSteps]   = useState([]);
 
-  // Save Decision form state
-  const [saveTitle, setSaveTitle] = useState('');
-  const [saveContent, setSaveContent] = useState('');
-  const [saveTags, setSaveTags] = useState([]);
-  const [currentTagInput, setCurrentTagInput] = useState('');
-  const [isSavingDecision, setIsSavingDecision] = useState(false);
+  /* ── Sidebar / memory state ── */
+  const [memories, setMemories]           = useState([]);
+  const [memoriesLoading, setMemoriesLoading] = useState(true);
+  const [isAppLoading, setIsAppLoading]   = useState(false);
+  const [sidebarOpen, setSidebarOpen]     = useState(false);
+  const [sidebarGlow, setSidebarGlow]     = useState(false);
+  const [searchQuery, setSearchQuery]     = useState('');
+  const [isSearching, setIsSearching]     = useState(false);
 
+  /* ── Sessions & Projects list states ── */
+  const [sessions, setSessions] = useState([]);
+  const [projects, setProjects] = useState([]);
+
+  /* ── Persona / project ── */
   const [activePersonaId, setActivePersonaId] = useState('architect');
+  const [activeProject, setActiveProject]     = useState('SentientOS');
 
-  const [stats, setStats] = useState({ totalMemories: 0, queriesToday: 0, decisionsSaved: 0, lastActive: null });
+  /* ── Toasts ── */
+  const [toasts, setToasts] = useState([]);
 
-  const chatEndRef = useRef(null);
-  const inputRef   = useRef(null);
+  /* ── Modals & Theme ── */
+  const [showOnboarding, setShowOnboarding]     = useState(() => !localStorage.getItem('onboarded'));
+  const [showShortcuts, setShowShortcuts]       = useState(false);
+  const [isStandupOpen, setIsStandupOpen]       = useState(false);
+  const [isSaveModalOpen, setIsSaveModalOpen]   = useState(false);
+  
+  const { theme, setTheme } = useTheme();
 
-  /* ── fetch stats ── */
-  const fetchStats = useCallback(async () => {
+  /* ── Identity ── */
+  const [identity, setIdentity] = useState(null);
+
+  const fetchIdentity = useCallback(async () => {
     try {
-      const res = await fetch('/api/stats');
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/identity`);
       const data = await res.json();
-      setStats(data);
-    } catch (err) {
-      console.error('Failed to fetch stats:', err);
+      setIdentity(data.identity);
+    } catch {
+      setIdentity(null);
     }
   }, []);
 
-  useEffect(() => {
-    fetchStats();
-    const interval = setInterval(fetchStats, 30000);
-    return () => clearInterval(interval);
-  }, [fetchStats]);
+  /* ── Save Decision form ── */
+  const [saveTitle, setSaveTitle]           = useState('');
+  const [saveContent, setSaveContent]       = useState('');
+  const [saveTags, setSaveTags]             = useState([]);
+  const [currentTagInput, setCurrentTagInput] = useState('');
+  const [isSavingDecision, setIsSavingDecision] = useState(false);
 
-  /* ── fetch memories ── */
-  const fetchMemories = useCallback(async () => {
+  /* ── Export ── */
+  const [isExporting, setIsExporting]     = useState(false);
+  const [exportMemories, setExportMemories] = useState([]);
+
+  /* ── Demo mode ── */
+  const [isDemoRunning, setIsDemoRunning] = useState(false);
+  const [demoStep, setDemoStep]           = useState(0);
+  const demoTimeoutsRef    = useRef([]);
+  const demoEventSourceRef = useRef(null);
+  const demoInputRef       = useRef(''); // tracks demo input visually
+
+  /* ── Stats (for Navbar memory count pill) ── */
+  const [stats, setStats] = useState({ totalMemories: 0 });
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     addToast — adds a toast with auto-remove
+  ───────────────────────────────────────────────────────────────────────── */
+  const addToast = useCallback((message, type = 'info', duration = 3500) => {
+    const id = Date.now() + Math.random();
+    setToasts(prev => [...prev, { id, message, type, duration }]);
+  }, []);
+
+  const removeToast = useCallback((id) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  }, []);
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     refreshMemories — GET /api/memories
+  ───────────────────────────────────────────────────────────────────────── */
+  const refreshMemories = useCallback(async () => {
     setMemoriesLoading(true);
     try {
-      const res  = await fetch('/api/memories');
+      const controller = new AbortController();
+      const timeoutId  = setTimeout(() => controller.abort(), 8000);
+      const res  = await fetch(`${import.meta.env.VITE_API_URL}/api/memories`, { signal: controller.signal });
+      clearTimeout(timeoutId);
       const data = await res.json();
       setMemories(data.memories || []);
     } catch {
@@ -484,71 +386,128 @@ export default function App() {
     }
   }, []);
 
-  useEffect(() => { fetchMemories(); }, [fetchMemories]);
-
-  /* ── debounced search ── */
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      // Cleared — go back to recent memories
-      setSearchResults([]);
-      setSearchDone(false);
-      fetchMemories();
-      return;
-    }
-    const timer = setTimeout(async () => {
-      setIsSearching(true);
-      setSearchDone(false);
-      try {
-        const res  = await fetch('/api/memories/search', {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ query: searchQuery.trim() }),
-        });
-        const data = await res.json();
-        setSearchResults(data.results ?? []);
-        setSearchDone(true);
-      } catch {
-        setSearchResults([]);
-        setSearchDone(true);
-      } finally {
-        setIsSearching(false);
-      }
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [searchQuery, fetchMemories]);
-
-  /* ── auto-scroll ── */
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isThinking]);
-
-  /* ── show toast ── */
-  const showToast = useCallback((message) => {
-    const id = Date.now();
-    setToast({ id, message });
+  /* ─────────────────────────────────────────────────────────────────────────
+     fetchStats — GET /api/stats (for Navbar memory count)
+  ───────────────────────────────────────────────────────────────────────── */
+  const fetchStats = useCallback(async () => {
+    try {
+      const res  = await fetch(`${import.meta.env.VITE_API_URL}/api/stats`);
+      const data = await res.json();
+      setStats(data);
+    } catch { /* silent */ }
   }, []);
 
-  /* ── send message ── */
-  const handleSend = async () => {
-    const task = input.trim();
-    if (!task || isThinking) return;
+  const refreshProjects = useCallback(async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/projects`);
+      const data = await res.json();
+      setProjects(data.projects || []);
+    } catch {
+      setProjects([]);
+    }
+  }, []);
+
+  const refreshSessions = useCallback(async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/conversations/${activeProject}`);
+      const data = await res.json();
+      setSessions(data.conversations || []);
+    } catch {
+      setSessions([]);
+    }
+  }, [activeProject]);
+
+  const handleSessionSelect = useCallback(async (sessId) => {
+    setIsLoading(true);
+    addToast('Loading conversation history...', 'info');
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/conversations/session/${sessId}`);
+      const data = await res.json();
+      if (data.messages && data.messages.length > 0) {
+        setMessages(data.messages);
+        setSessionId(sessId);
+        sessionStorage.setItem('sessionId', sessId);
+        addToast('Conversation loaded successfully', 'success');
+      } else {
+        setMessages([{ id: 'welcome', role: 'agent', content: "No history found for this session." }]);
+        setSessionId(sessId);
+        sessionStorage.setItem('sessionId', sessId);
+      }
+    } catch {
+      addToast('Failed to load conversation history', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [addToast]);
+
+  const handleProjectSwitch = useCallback((projectId) => {
+    setActiveProject(projectId);
+    addToast(`Switched active project to ${projectId}`, 'success');
+  }, [addToast]);
+
+  const handleSettingsChange = useCallback((key, value) => {
+    if (key === 'theme') {
+      setTheme(value);
+    } else if (key === 'defaultPersona') {
+      setActivePersonaId(value);
+      addToast(`Default persona set to ${value}`, 'success');
+    }
+  }, [addToast]);
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     handleSearch — debounced via Sidebar internally; called on query change
+  ───────────────────────────────────────────────────────────────────────── */
+  const handleSearch = useCallback(async (query) => {
+    setSearchQuery(query);
+    if (!query.trim()) {
+      refreshMemories();
+      return;
+    }
+    setIsSearching(true);
+    try {
+      const res  = await fetch(`${import.meta.env.VITE_API_URL}/api/memories/search`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: query.trim() }),
+      });
+      const data = await res.json();
+      setMemories(data.results ?? []);
+    } catch {
+      /* keep existing */
+    } finally {
+      setIsSearching(false);
+    }
+  }, [refreshMemories]);
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     handleMemorySelect — injects a memory reference into chat
+  ───────────────────────────────────────────────────────────────────────── */
+  const handleMemorySelect = useCallback((memory) => {
+    const title = extractTitle(memory);
+    addToast(`📎 Referencing: "${title}"`, 'info');
+  }, [addToast]);
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     handleSubmit — SSE agent streaming
+  ───────────────────────────────────────────────────────────────────────── */
+  const handleSubmit = useCallback(async (task) => {
+    if (!task?.trim() || isLoading) return;
 
     const userMsg = { id: Date.now(), role: 'user', content: task };
     setMessages(prev => [...prev, userMsg]);
-    setInput('');
-    setIsThinking(true);
-    setStatusFeed('Initializing...');
-    setSidebarOpen(false); // close drawer on mobile when sending
+    setIsLoading(true);
+    setStreamSteps(['Initializing…']);
+    setSidebarOpen(false);
 
-    const encodedTask = encodeURIComponent(task);
-    const eventSource = new EventSource(`/api/agent?task=${encodedTask}&persona=${activePersonaId}`);
+    const encoded = encodeURIComponent(task);
+    const eventSrc  = new EventSource(`${import.meta.env.VITE_API_URL}/api/agent?task=${encoded}&persona=${activePersonaId}&sessionId=${sessionId}`);
 
-    eventSource.addEventListener('step', (e) => {
-      setStatusFeed(e.data);
+    eventSrc.addEventListener('step', (e) => {
+      setStreamSteps(prev => [...prev, e.data]);
     });
 
-    eventSource.addEventListener('done', async (e) => {
-      eventSource.close();
+    eventSrc.addEventListener('done', async (e) => {
+      eventSrc.close();
       const data = JSON.parse(e.data);
       const agentMsg = {
         id: Date.now() + 1,
@@ -557,55 +516,191 @@ export default function App() {
         retrievedMemories: data.retrievedMemories ?? [],
       };
       setMessages(prev => [...prev, agentMsg]);
-      await fetchMemories();
-      setIsThinking(false);
-      setStatusFeed('');
-      setTimeout(() => inputRef.current?.focus(), 50);
+      await refreshMemories();
+      fetchStats();
+      setIsLoading(false);
+      setStreamSteps([]);
     });
 
-    eventSource.addEventListener('error', (e) => {
-      eventSource.close();
-      showToast('Agent unavailable, try again');
+    eventSrc.addEventListener('error', (e) => {
+      eventSrc.close();
+      clearTimeout(timeoutId);
+      let errMsg = '⚠️ Unable to reach the agent. Please check the server is running and try again.';
+      if (e.data) {
+        try {
+          const parsed = JSON.parse(e.data);
+          errMsg = '⚠️ ' + (parsed.error || 'Agent Error');
+        } catch (err) {}
+        addToast('Agent returned an error', 'error');
+      } else {
+        addToast('Agent unavailable — check the server is running', 'error');
+      }
+
       setMessages(prev => [...prev, {
         id: Date.now() + 1,
         role: 'agent',
-        content: '⚠️ Unable to reach the agent. Please check the server is running and try again.',
+        content: errMsg,
       }]);
-      setIsThinking(false);
-      setStatusFeed('');
+      setIsLoading(false);
+      setStreamSteps([]);
     });
-  };
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
-  };
+    // Safety net: if no response in 45s, close the connection and show an error
+    const timeoutId = setTimeout(() => {
+      if (eventSrc.readyState !== EventSource.CLOSED) {
+        eventSrc.close();
+        addToast('Agent timed out — try again', 'error');
+        setMessages(prev => [...prev, {
+          id: Date.now() + 1,
+          role: 'agent',
+          content: '⏱️ The agent took too long to respond. This usually means the LLM API key is missing or the server is overloaded. Please check your .env file and try again.',
+        }]);
+        setIsLoading(false);
+        setStreamSteps([]);
+      }
+    }, 120000);
+  }, [isLoading, activePersonaId, refreshMemories, fetchStats, addToast, sessionId]);
 
-  /* ── Save Decision Handlers ── */
+  /* ─────────────────────────────────────────────────────────────────────────
+     handleSuggestion — from ChatWindow empty-state chips
+  ───────────────────────────────────────────────────────────────────────── */
+  const handleSuggestion = useCallback((text) => {
+    handleSubmit(text);
+  }, [handleSubmit]);
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     Demo helpers
+  ───────────────────────────────────────────────────────────────────────── */
+  const demoDelay = useCallback((ms) => {
+    return new Promise((resolve) => {
+      const id = setTimeout(resolve, ms);
+      demoTimeoutsRef.current.push(id);
+    });
+  }, []);
+
+  const sendDemoMessage = useCallback((task, personaId = 'architect') => {
+    return new Promise((resolve) => {
+      const userMsg = { id: Date.now(), role: 'user', content: task };
+      setMessages(prev => [...prev, userMsg]);
+      setIsLoading(true);
+      setStreamSteps(['Initializing…']);
+
+      const encoded   = encodeURIComponent(task);
+      const eventSrc  = new EventSource(`${import.meta.env.VITE_API_URL}/api/agent?task=${encoded}&persona=${personaId}&sessionId=${sessionId}`);
+      demoEventSourceRef.current = eventSrc;
+
+      eventSrc.addEventListener('step',  (e) => setStreamSteps(prev => [...prev, e.data]));
+
+      eventSrc.addEventListener('done', async (e) => {
+        eventSrc.close();
+        demoEventSourceRef.current = null;
+        const data = JSON.parse(e.data);
+        const agentMsg = {
+          id: Date.now() + 1,
+          role: 'agent',
+          content: data.response || data.error || 'No response received.',
+          retrievedMemories: data.retrievedMemories ?? [],
+        };
+        setMessages(prev => [...prev, agentMsg]);
+        await refreshMemories();
+        setIsLoading(false);
+        setStreamSteps([]);
+        resolve(data);
+      });
+
+      eventSrc.addEventListener('error', () => {
+        eventSrc.close();
+        demoEventSourceRef.current = null;
+        setIsLoading(false);
+        setStreamSteps([]);
+        resolve({ error: 'connection error' });
+      });
+    });
+  }, [refreshMemories]);
+
+  const stopDemo = useCallback(() => {
+    demoTimeoutsRef.current.forEach(clearTimeout);
+    demoTimeoutsRef.current = [];
+    if (demoEventSourceRef.current) {
+      demoEventSourceRef.current.close();
+      demoEventSourceRef.current = null;
+    }
+    setIsDemoRunning(false);
+    setDemoStep(0);
+    setIsLoading(false);
+    setStreamSteps([]);
+    setSidebarGlow(false);
+  }, []);
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     runDemo — automated 5-step showcase
+  ───────────────────────────────────────────────────────────────────────── */
+  const runDemo = useCallback(async () => {
+    if (isDemoRunning) { stopDemo(); return; }
+
+    setIsDemoRunning(true);
+    demoTimeoutsRef.current = [];
+
+    setMessages([{
+      id: 'welcome', role: 'agent',
+      content: "Hello! I'm the Eternal Architect — your AI system orchestrator. Let me demonstrate how I remember architectural decisions...",
+    }]);
+
+    /* Step 1 */
+    setDemoStep(1);
+    await demoDelay(800);
+    await sendDemoMessage("Set up the project with React and Tailwind, no Bootstrap");
+
+    /* Step 2 */
+    setDemoStep(2);
+    await demoDelay(2000);
+    await sendDemoMessage("Add a navigation bar with logo and 3 links");
+
+    /* Step 3 — conflict detection */
+    setDemoStep(3);
+    await demoDelay(2000);
+    await sendDemoMessage("Now add Bootstrap to style the navbar", 'architect');
+
+    /* Step 4 — sidebar glow highlight */
+    setDemoStep(4);
+    await demoDelay(1500);
+    setSidebarGlow(true);
+    addToast('📌 Every decision above is stored here forever', 'success', 5000);
+
+    /* Step 5 — finale */
+    setDemoStep(5);
+    await demoDelay(3500);
+    setSidebarGlow(false);
+    addToast('✅ Demo complete — I remembered Bootstrap was banned!', 'success', 5000);
+
+    setIsDemoRunning(false);
+    setDemoStep(0);
+  }, [isDemoRunning, stopDemo, demoDelay, sendDemoMessage, addToast]);
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     Save Decision handlers
+  ───────────────────────────────────────────────────────────────────────── */
   const handleSaveDecision = async () => {
     if (!saveTitle.trim() || !saveContent.trim() || isSavingDecision) return;
     setIsSavingDecision(true);
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today     = new Date().toISOString().split('T')[0];
       const finalTags = [...saveTags, 'type:manual', `date:${today}`];
-      
-      const res = await fetch('/api/memory', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/memory`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: saveTitle.trim(),
-          content: saveContent.trim(),
-          tags: finalTags
-        }),
+        body: JSON.stringify({ title: saveTitle.trim(), content: saveContent.trim(), tags: finalTags }),
       });
-      if (!res.ok) throw new Error('Failed to save memory');
-      showToast('✓ Saved to Parcle');
+      if (!res.ok) throw new Error('Failed');
+      addToast('✓ Decision saved to memory', 'success');
       setSaveTitle('');
       setSaveContent('');
       setSaveTags([]);
       setCurrentTagInput('');
-      await fetchMemories();
-    } catch (err) {
-      showToast('Failed to save decision');
+      await refreshMemories();
+      fetchStats();
+    } catch {
+      addToast('Failed to save decision', 'error');
     } finally {
       setIsSavingDecision(false);
     }
@@ -615,135 +710,171 @@ export default function App() {
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
       const newTag = currentTagInput.trim().replace(/^,+|,+$/g, '');
-      if (newTag && !saveTags.includes(newTag)) {
-        setSaveTags(prev => [...prev, newTag]);
-      }
+      if (newTag && !saveTags.includes(newTag)) setSaveTags(prev => [...prev, newTag]);
       setCurrentTagInput('');
     }
   };
 
-  const removeTag = (tagToRemove) => {
-    setSaveTags(prev => prev.filter(t => t !== tagToRemove));
+  const removeTag = (tag) => setSaveTags(prev => prev.filter(t => t !== tag));
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     Export report
+  ───────────────────────────────────────────────────────────────────────── */
+  const handleExportReport = async () => {
+    if (isExporting) return;
+    setIsExporting(true);
+    try {
+      const res  = await fetch(`${import.meta.env.VITE_API_URL}/api/memories?limit=100`);
+      const data = await res.json();
+      setExportMemories(data.memories || []);
+      setTimeout(() => { window.print(); setIsExporting(false); }, 300);
+    } catch {
+      addToast('Failed to export report', 'error');
+      setIsExporting(false);
+    }
   };
 
-  /* ── shared inline styles ── */
+  /* ─────────────────────────────────────────────────────────────────────────
+     On mount: fetch data, set up keyboard shortcuts
+  ───────────────────────────────────────────────────────────────────────── */
+  /* ── Initial boot: show loader briefly, then dismiss regardless of API ── */
+  useEffect(() => {
+    setIsAppLoading(true);
+    // Always dismiss loader after 2.5 s maximum (safety net if backend is slow)
+    const safetyTimer = setTimeout(() => setIsAppLoading(false), 2500);
+    refreshMemories().finally(() => {
+      clearTimeout(safetyTimer);
+      setIsAppLoading(false);
+    });
+    fetchStats();
+    refreshProjects();
+    refreshSessions();
+    fetchIdentity();
+    const statsInterval = setInterval(fetchStats, 30000);
+    return () => {
+      clearTimeout(safetyTimer);
+      clearInterval(statsInterval);
+    };
+  }, [refreshMemories, fetchStats, refreshProjects, refreshSessions, fetchIdentity]);
+
+  useEffect(() => {
+    refreshMemories();
+    refreshSessions();
+  }, [activeProject, refreshMemories, refreshSessions]);
+
+  /* Keyboard shortcuts */
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      const meta = e.metaKey || e.ctrlKey;
+
+      /* Cmd+D → Demo */
+      if (meta && e.key === 'd') {
+        e.preventDefault();
+        runDemo();
+      }
+      /* Cmd+S → Save decision */
+      if (meta && e.key === 's') {
+        e.preventDefault();
+        setIsSaveModalOpen(true);
+      }
+      /* Cmd+E → Export */
+      if (meta && e.key === 'e') {
+        e.preventDefault();
+        handleExportReport();
+      }
+      /* Cmd+1–4 → switch persona */
+      if (meta && ['1','2','3','4'].includes(e.key)) {
+        e.preventDefault();
+        const persona = PERSONAS[parseInt(e.key) - 1];
+        if (persona) setActivePersonaId(persona.id);
+      }
+      /* ? → shortcuts modal (no modifier, not in input) */
+      if (e.key === '?' && !meta && !e.target.closest('input, textarea')) {
+        setShowShortcuts(true);
+      }
+      /* Esc → close any open modal */
+      if (e.key === 'Escape') {
+        setShowShortcuts(false);
+        setIsSaveModalOpen(false);
+        setIsStandupOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [runDemo]);
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     Derived
+  ───────────────────────────────────────────────────────────────────────── */
+  const activePersona = PERSONAS.find(p => p.id === activePersonaId) || PERSONAS[0];
   const panelBase = {
-    background: '#fff',
-    border: '1px solid #E5E5EA',
+    background: 'var(--white)',
+    border: '1px solid var(--border)',
     boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
     display: 'flex', flexDirection: 'column',
     overflow: 'hidden',
   };
 
-  /* ───────────────────────────────────────────────────────────────────────── */
+  /* ═══════════════════════════════════════════════════════════════════════════
+     Render
+  ══════════════════════════════════════════════════════════════════════════ */
   return (
-    <div style={{
-      height: '100vh', display: 'flex', flexDirection: 'column',
-      background: '#F5F5F7',
+    <div className="app-grid" style={{
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif",
     }}>
+      {/* ── Full-page app boot loader ─────────────────────────────────────── */}
+      {isAppLoading && <AppLoader message="Loading your memories…" />}
 
-      {/* ── Error Toast ─────────────────────────────────────────────────── */}
-      {toast && (
-        <ErrorToast
-          key={toast.id}
-          message={toast.message}
-          onDismiss={() => setToast(null)}
+      {/* ── Toasts ───────────────────────────────────────────────────────── */}
+      <ToastContainer toasts={toasts} onDismiss={removeToast} />
+
+      {/* ── Keyboard Shortcuts Modal ──────────────────────────────────────── */}
+      {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
+
+      {/* ── Onboarding Modal ─────────────────────────────────────────────── */}
+      {showOnboarding && (
+        <OnboardingModal
+          onComplete={() => {
+            localStorage.setItem('onboarded', 'true');
+            setShowOnboarding(false);
+            addToast('Welcome aboard! Try the Demo button to see it in action.', 'success', 5000);
+          }}
         />
       )}
 
-      {/* ── Top bar ─────────────────────────────────────────────────────── */}
-      <header style={{
-        background: 'rgba(255,255,255,0.90)',
-        backdropFilter: 'blur(20px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-        borderBottom: '1px solid rgba(0,0,0,0.08)',
-        display: 'flex', flexDirection: 'column',
-        position: 'sticky', top: 0, zIndex: 100, flexShrink: 0,
-      }}>
-        {/* Stats Bar */}
-        <div style={{
-          display: 'flex', gap: 12, overflowX: 'auto', padding: '10px 18px',
-          borderBottom: '1px solid #F2F2F7', background: '#FAFAFA'
-        }}>
-          {[
-            { label: 'Total Memories', value: stats.totalMemories, emoji: '🧠' },
-            { label: 'Queries Today', value: stats.queriesToday, emoji: '🔍' },
-            { label: 'Decisions Saved', value: stats.decisionsSaved, emoji: '💾' },
-            { label: 'Last Active', value: stats.lastActive ? new Date(stats.lastActive).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Never', emoji: '⚡' }
-          ].map((stat, i) => (
-            <div key={i} style={{
-              flex: 1, minWidth: 160, display: 'flex', alignItems: 'center', gap: 10,
-              background: '#fff', padding: '10px 14px', borderRadius: 10,
-              border: '1px solid #E5E5EA', boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
-            }}>
-              <span style={{ fontSize: 18 }}>{stat.emoji}</span>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: 11, color: '#86868B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{stat.label}</span>
-                <span style={{ fontSize: 16, fontWeight: 700, color: '#0071E3' }}>{stat.value}</span>
-              </div>
-            </div>
-          ))}
-        </div>
+      {/* ── Navbar (ZONE 1) ──────────────────────────────────────────── */}
+      <div className="zone-navbar">
+        <Navbar
+          activeProject={activeProject}
+          totalMemories={stats.totalMemories ?? memories.length}
+          activePersona={activePersona}
+          theme={theme}
+          onToggleTheme={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
+          onOpenShortcuts={() => setShowShortcuts(true)}
+          onOpenStandup={() => setIsStandupOpen(true)}
+          onDemoClick={runDemo}
+          isDemoRunning={isDemoRunning}
+          demoStep={demoStep}
+          onToggleSidebar={() => setSidebarOpen(o => !o)}
+          identity={identity}
+        />
+      </div>
 
-        {/* Brand Bar */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 18px', height: 52 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {/* Mobile: hamburger to toggle sidebar */}
-          <button
-            id="sidebar-toggle-btn"
-            onClick={() => setSidebarOpen(o => !o)}
-            aria-label="Toggle memory sidebar"
-            style={{
-              display: 'none', // shown via CSS media query override below
-              width: 34, height: 34, borderRadius: 9,
-              background: '#F5F5F7', border: '1px solid #E5E5EA',
-              alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', flexShrink: 0,
-            }}
-            className="mobile-menu-btn"
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M2 4h12M2 8h12M2 12h12" stroke="#1D1D1F" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-          </button>
-          <div style={{
-            width: 28, height: 28, borderRadius: 8,
-            background: 'linear-gradient(135deg, #0071E3 0%, #34aadc 100%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(0,113,227,0.4)',
-          }}>
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
-              <path d="M7.5 1L9.5 5H14L10.5 8L12 13L7.5 10L3 13L4.5 8L1 5H5.5L7.5 1Z"
-                fill="white" stroke="white" strokeWidth="0.5" strokeLinejoin="round" />
-            </svg>
-          </div>
-          <span style={{ fontSize: 15, fontWeight: 600, color: '#1D1D1F', letterSpacing: '-0.01em' }}>
-            SentientOS
-          </span>
-          <span style={{
-            fontSize: 11, fontWeight: 500, color: '#0071E3',
-            background: '#E8F1FB', padding: '2px 8px', borderRadius: 99,
-            letterSpacing: '0.02em',
-          }}>
-            BETA
-          </span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#34C759' }} />
-          <span style={{ fontSize: 12, color: '#6E6E73', fontWeight: 400 }}>System online</span>
-          </div>
-        </div>
-      </header>
+
+      {/* ── Standup Modal ─────────────────────────────────────────────────── */}
+      <StandupPanel
+        open={isStandupOpen}
+        onClose={() => setIsStandupOpen(false)}
+      />
 
       {/* ── Mobile sidebar overlay ───────────────────────────────────────── */}
-      {/* Hidden by default on desktop; CSS shows it on mobile */}
       <div
         className="sidebar-overlay"
         onClick={() => setSidebarOpen(false)}
         style={{
           display: 'none',
-          position: 'fixed', inset: 0, top: 52,
+          position: 'fixed', inset: 0, top: 56,
           background: 'rgba(0,0,0,0.35)',
           zIndex: 199,
           opacity: sidebarOpen ? 1 : 0,
@@ -752,455 +883,165 @@ export default function App() {
         }}
       />
 
-      {/* ── Two-panel layout ─────────────────────────────────────────────── */}
-      <div className="layout-panels" style={{
-        flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0,
-        padding: '16px', gap: 14,
-      }}>
-
-        {/* ═══════════════════ LEFT PANEL — Memory Sidebar ═══════════════ */}
-        <aside
-          className={`sidebar-panel${sidebarOpen ? ' open' : ''}`}
-          style={{
-            ...panelBase,
-            width: '30%', minWidth: 260, maxWidth: 360,
-            borderRadius: 18,
-            flexShrink: 0,
-          }}
-        >
-          {/* Header */}
-          <div style={{
-            padding: '16px 18px 12px',
-            borderBottom: '1px solid #F2F2F7',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            flexShrink: 0,
-          }}>
-            <div>
-              <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#1D1D1F', letterSpacing: '-0.02em' }}>
-                Past Decisions
-              </h2>
-              <p style={{ margin: '2px 0 0', fontSize: 12, color: '#86868B', fontWeight: 400 }}>
-                {memoriesLoading || isSearching
-                  ? 'Searching…'
-                  : searchDone
-                    ? `${searchResults.length} ${searchResults.length === 1 ? 'memory' : 'memories'} found`
-                    : `${memories.length} memories stored`}
-              </p>
-            </div>
-            <button
-              id="refresh-memories-btn"
-              onClick={() => { setSearchQuery(''); fetchMemories(); }}
-              disabled={memoriesLoading && !searchQuery}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 5,
-                padding: '6px 12px', borderRadius: 8, border: '1px solid',
-                borderColor: memoriesLoading ? '#D2D2D7' : '#0071E3',
-                background: memoriesLoading ? '#F5F5F7' : '#E8F1FB',
-                color: memoriesLoading ? '#86868B' : '#0071E3',
-                fontSize: 12, fontWeight: 600,
-                cursor: memoriesLoading ? 'not-allowed' : 'pointer',
-                transition: 'all 0.15s ease',
-              }}
+      {/* ── Save Decision Modal ───────────────────────────────────────────── */}
+      <Modal
+        open={isSaveModalOpen}
+        onClose={() => setIsSaveModalOpen(false)}
+        title="Save Decision"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setIsSaveModalOpen(false)}>Cancel</Button>
+            <Button
+              variant="primary"
+              onClick={async () => { await handleSaveDecision(); setIsSaveModalOpen(false); }}
+              disabled={isSavingDecision || !saveTitle.trim() || !saveContent.trim()}
+              loading={isSavingDecision}
             >
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
-                style={{ animation: memoriesLoading ? 'spin 0.8s linear infinite' : 'none', transformOrigin: 'center' }}>
-                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-                <path d="M10 6A4 4 0 1 1 6 2M6 2L8.5 0M6 2L8.5 4"
-                  stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Refresh
-            </button>
-          </div>
-
-          {/* Search input */}
-          <div style={{ padding: '10px 14px 2px', flexShrink: 0 }}>
-            <div style={{ position: 'relative' }}>
-              {/* Search icon */}
-              <svg
-                width="14" height="14" viewBox="0 0 14 14" fill="none"
-                style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
-              >
-                <circle cx="6" cy="6" r="4.5" stroke="#86868B" strokeWidth="1.4" />
-                <path d="M9.5 9.5l2.5 2.5" stroke="#86868B" strokeWidth="1.4" strokeLinecap="round" />
-              </svg>
-              <input
-                id="memory-search-input"
-                type="text"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search past decisions…"
-                style={{
-                  width: '100%',
-                  padding: '8px 32px 8px 30px',
-                  borderRadius: 10,
-                  border: '1.5px solid',
-                  borderColor: searchQuery ? '#0071E3' : '#E5E5EA',
-                  boxShadow: searchQuery ? '0 0 0 3px rgba(0,113,227,0.10)' : 'none',
-                  fontSize: 13,
-                  fontFamily: 'inherit',
-                  color: '#1D1D1F',
-                  background: '#F5F5F7',
-                  outline: 'none',
-                  transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
-                  boxSizing: 'border-box',
-                }}
-              />
-              {/* Clear button */}
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  style={{
-                    position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
-                    background: '#D2D2D7', border: 'none', borderRadius: '50%',
-                    width: 16, height: 16, cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    padding: 0,
-                  }}
-                  aria-label="Clear search"
-                >
-                  <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
-                    <path d="M1.5 1.5l5 5M6.5 1.5l-5 5" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
-                  </svg>
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Memory list */}
-          <div style={{
-            flex: 1, overflowY: 'auto', padding: '10px 14px',
-            display: 'flex', flexDirection: 'column', gap: 8,
-          }}>
-            <style>{`@keyframes pulse{0%,100%{opacity:.55}50%{opacity:1}}`}</style>
-            {(memoriesLoading || isSearching) ? (
-              /* Skeleton cards */
-              Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} style={{
-                  background: '#F5F5F7', borderRadius: 12,
-                  padding: '14px 16px', border: '1px solid #F2F2F7',
-                  animation: `pulse 1.6s ${i * 0.1}s ease-in-out infinite`,
-                }}>
-                  <div style={{ height: 10, width: '40%', background: '#E5E5EA', borderRadius: 99, marginBottom: 8 }} />
-                  <div style={{ height: 13, width: '75%', background: '#E5E5EA', borderRadius: 99, marginBottom: 6 }} />
-                  <div style={{ height: 11, width: '90%', background: '#E5E5EA', borderRadius: 99 }} />
-                </div>
-              ))
-            ) : searchDone && searchResults.length === 0 ? (
-              /* No results state */
-              <div style={{
-                flex: 1, display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center',
-                gap: 8, padding: '32px 20px', textAlign: 'center',
-              }}>
-                <div style={{
-                  width: 44, height: 44, borderRadius: 12,
-                  background: '#F5F5F7', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                    <circle cx="10" cy="10" r="7.5" stroke="#86868B" strokeWidth="1.4" />
-                    <path d="M16 16l3.5 3.5" stroke="#86868B" strokeWidth="1.4" strokeLinecap="round" />
-                    <path d="M7.5 10h5M10 7.5v5" stroke="#86868B" strokeWidth="1.4" strokeLinecap="round" opacity="0.4" />
-                  </svg>
-                </div>
-                <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#3A3A3C' }}>No results found</p>
-                <p style={{ margin: 0, fontSize: 12, color: '#86868B', lineHeight: 1.5 }}>
-                  Try different keywords or{' '}
-                  <button onClick={() => setSearchQuery('')}
-                    style={{ background: 'none', border: 'none', color: '#0071E3', cursor: 'pointer', fontSize: 12, fontWeight: 600, padding: 0, fontFamily: 'inherit' }}>
-                    view all memories
-                  </button>
-                </p>
-              </div>
-            ) : searchDone ? (
-              /* Search results */
-              searchResults.map((m, i) => <SearchResultCard key={m.id || i} result={m} />)
-            ) : memories.length === 0 ? (
-              <SidebarEmptyState />
-            ) : (
-              memories.map((m, i) => <MemoryCard key={m.id || i} memory={m} />)
-            )}
-          </div>
-
-          {/* Save Decision Panel */}
-          <div style={{
-            padding: '14px', borderTop: '1px solid #E5E5EA', background: '#FAFAFA',
-            display: 'flex', flexDirection: 'column', gap: 10, flexShrink: 0
-          }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#1D1D1F' }}>Save Decision</div>
-            <input
-              type="text"
-              placeholder="Decision title"
-              value={saveTitle}
-              onChange={e => setSaveTitle(e.target.value)}
-              disabled={isSavingDecision}
-              style={{
-                width: '100%', padding: '8px 12px', borderRadius: 8,
-                border: '1px solid #D2D2D7', fontSize: 13, outline: 'none',
-                background: '#fff', boxSizing: 'border-box',
-                transition: 'border-color 0.15s ease'
-              }}
-              onFocus={e => e.target.style.borderColor = '#0071E3'}
-              onBlur={e => e.target.style.borderColor = '#D2D2D7'}
-            />
+              Save to Memory
+            </Button>
+          </>
+        }
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <Input
+            label="Decision Title"
+            placeholder="e.g., Use Postgres instead of Mongo"
+            value={saveTitle}
+            onChange={e => setSaveTitle(e.target.value)}
+            disabled={isSavingDecision}
+          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+            <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--gray-mid)', fontFamily: 'var(--font)' }}>
+              Decision Content
+            </label>
             <textarea
-              placeholder="Decision content"
+              placeholder="Explain the reasoning..."
               value={saveContent}
               onChange={e => setSaveContent(e.target.value)}
               disabled={isSavingDecision}
-              rows={3}
+              rows={4}
               style={{
-                width: '100%', padding: '8px 12px', borderRadius: 8,
-                border: '1px solid #D2D2D7', fontSize: 13, outline: 'none',
-                background: '#fff', boxSizing: 'border-box', resize: 'none',
-                fontFamily: 'inherit', transition: 'border-color 0.15s ease'
+                width: '100%', padding: '10px 14px', borderRadius: 'var(--radius-md)',
+                border: '1.5px solid var(--border)', fontSize: 15, outline: 'none',
+                background: 'var(--white)', boxSizing: 'border-box', resize: 'vertical',
+                fontFamily: 'inherit', transition: 'border-color 0.15s ease', color: 'var(--black)',
               }}
-              onFocus={e => e.target.style.borderColor = '#0071E3'}
-              onBlur={e => e.target.style.borderColor = '#D2D2D7'}
+              onFocus={e  => e.target.style.borderColor = 'var(--blue)'}
+              onBlur={e   => e.target.style.borderColor = 'var(--border)'}
             />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+            <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--gray-mid)', fontFamily: 'var(--font)' }}>
+              Tags (press Enter to add)
+            </label>
             <div style={{
-              display: 'flex', flexWrap: 'wrap', gap: 6,
-              alignItems: 'center', background: '#fff',
-              border: '1px solid #D2D2D7', borderRadius: 8, padding: '4px 8px',
-              minHeight: 34, boxSizing: 'border-box'
+              display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center',
+              background: 'var(--white)', border: '1.5px solid var(--border)',
+              borderRadius: 'var(--radius-md)', padding: '6px 10px',
+              minHeight: 42, boxSizing: 'border-box',
             }}>
               {saveTags.map(tag => (
                 <div key={tag} style={{
-                  background: '#E8F1FB', color: '#0071E3',
-                  padding: '2px 8px', borderRadius: 12, fontSize: 12,
-                  display: 'flex', alignItems: 'center', gap: 4
+                  background: 'var(--blue-light)', color: 'var(--blue)',
+                  padding: '4px 10px', borderRadius: 'var(--radius-pill)',
+                  fontSize: 13, display: 'flex', alignItems: 'center', gap: 6, fontWeight: 500,
                 }}>
                   {tag}
                   <button onClick={() => removeTag(tag)} disabled={isSavingDecision} style={{
-                    background: 'none', border: 'none', color: '#0071E3', padding: 0,
-                    cursor: 'pointer', display: 'flex', alignItems: 'center'
+                    background: 'none', border: 'none', color: 'var(--blue)',
+                    padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center',
                   }}>
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2.5 2.5L7.5 7.5M7.5 2.5L2.5 7.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                      <path d="M2.5 2.5L7.5 7.5M7.5 2.5L2.5 7.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                    </svg>
                   </button>
                 </div>
               ))}
               <input
                 type="text"
-                placeholder={saveTags.length === 0 ? "Add tags..." : ""}
+                placeholder={saveTags.length === 0 ? 'Add tags…' : ''}
                 value={currentTagInput}
                 onChange={e => setCurrentTagInput(e.target.value)}
                 onKeyDown={handleTagKeyDown}
                 disabled={isSavingDecision}
                 style={{
                   border: 'none', outline: 'none', background: 'transparent',
-                  fontSize: 13, width: 80, flex: 1, minWidth: 60
+                  fontSize: 14, flex: 1, minWidth: 80, fontFamily: 'var(--font)', color: 'var(--black)',
                 }}
               />
             </div>
-            <button
-              onClick={handleSaveDecision}
-              disabled={isSavingDecision || !saveTitle.trim() || !saveContent.trim()}
-              style={{
-                width: '100%', padding: '10px', borderRadius: 8, border: 'none',
-                background: (isSavingDecision || !saveTitle.trim() || !saveContent.trim()) ? '#D2D2D7' : '#0071E3',
-                color: '#fff', fontSize: 13, fontWeight: 600,
-                cursor: (isSavingDecision || !saveTitle.trim() || !saveContent.trim()) ? 'not-allowed' : 'pointer',
-                transition: 'background 0.15s ease'
-              }}
-            >
-              {isSavingDecision ? 'Saving...' : 'Save to Memory'}
-            </button>
           </div>
-        </aside>
+        </div>
+      </Modal>
 
-        {/* ═══════════════════ RIGHT PANEL — Agent Chat ══════════════════ */}
-        <main className="chat-panel" style={{ ...panelBase, flex: 1, borderRadius: 18, minWidth: 0 }}>
-
-          {/* Chat header */}
-          <div style={{
-            padding: '14px 18px 12px',
-            borderBottom: '1px solid #F2F2F7',
-            display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0,
-          }}>
-            {/* Mobile: open sidebar button inside chat header */}
-            <button
-              onClick={() => setSidebarOpen(o => !o)}
-              className="mobile-menu-btn"
-              aria-label="Open memory sidebar"
-              style={{
-                display: 'none',
-                width: 32, height: 32, borderRadius: 8,
-                background: '#F5F5F7', border: '1px solid #E5E5EA',
-                alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', flexShrink: 0,
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M1 3.5h12M1 7h12M1 10.5h12" stroke="#1D1D1F" strokeWidth="1.4" strokeLinecap="round" />
-              </svg>
-            </button>
-
-            <div style={{
-              width: 40, height: 40, borderRadius: 12, flexShrink: 0,
-              background: 'linear-gradient(135deg, #0071E3 0%, #34aadc 100%)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 3px 10px rgba(0,113,227,0.35)',
-              fontSize: 20
-            }}>
-              {PERSONAS.find(p => p.id === activePersonaId)?.emoji}
-            </div>
-            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-start' }}>
-              <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
-                <select
-                  value={activePersonaId}
-                  onChange={e => setActivePersonaId(e.target.value)}
-                  style={{
-                    appearance: 'none', background: 'transparent', border: 'none',
-                    fontSize: 16, fontWeight: 700, color: '#1D1D1F', letterSpacing: '-0.02em',
-                    padding: '0 16px 0 0', margin: 0, cursor: 'pointer', outline: 'none'
-                  }}
-                >
-                  {PERSONAS.map(p => (
-                    <option key={p.id} value={p.id}>{p.label}</option>
-                  ))}
-                </select>
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-                  <path d="M2.5 3.5L5 6L7.5 3.5" stroke="#1D1D1F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
-              <p style={{ margin: 0, fontSize: 12, color: '#86868B', fontWeight: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {isThinking
-                  ? <span style={{ color: '#0071E3', fontWeight: 500 }}>Thinking + querying memory…</span>
-                  : PERSONAS.find(p => p.id === activePersonaId)?.subtitle
-                }
-              </p>
-            </div>
-          </div>
-
-          {/* Messages area */}
-          <div style={{
-            flex: 1, overflowY: 'auto', padding: '20px 18px',
-            display: 'flex', flexDirection: 'column', gap: 16, minHeight: 0,
-          }}>
-            {messages.map(msg => <MessageBubble key={msg.id} msg={msg} />)}
-            {isThinking && <LoadingSpinner />}
-            <div ref={chatEndRef} />
-          </div>
-
-          {/* Status Feed */}
-          {statusFeed && (
-            <div style={{
-              padding: '8px 16px', background: '#F5F5F7', borderTop: '1px solid #E5E5EA',
-              display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#0071E3',
-              fontWeight: 500, flexShrink: 0,
-            }}>
-              <style>{`
-                @keyframes pulseDot { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1); } }
-              `}</style>
-              <div style={{
-                width: 6, height: 6, borderRadius: '50%', background: '#0071E3',
-                animation: 'pulseDot 1.5s infinite ease-in-out'
-              }} />
-              {statusFeed}
-            </div>
-          )}
-
-          {/* Input bar */}
-          <div style={{
-            padding: '12px 14px', borderTop: '1px solid #F2F2F7',
-            background: '#FAFAFA', borderRadius: '0 0 18px 18px', flexShrink: 0,
-          }}>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
-              <textarea
-                id="agent-input"
-                ref={inputRef}
-                value={input}
-                onChange={e => {
-                  setInput(e.target.value);
-                  e.target.style.height = 'auto';
-                  e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
-                }}
-                onKeyDown={handleKeyDown}
-                placeholder="Ask the Eternal Architect anything…"
-                disabled={isThinking}
-                rows={1}
-                style={{
-                  flex: 1, resize: 'none',
-                  border: '1.5px solid',
-                  borderColor: input ? '#0071E3' : '#D2D2D7',
-                  borderRadius: 12, padding: '10px 13px',
-                  fontSize: 14, fontFamily: 'inherit',
-                  color: '#1D1D1F', background: '#fff', outline: 'none',
-                  lineHeight: 1.55, minHeight: 44, maxHeight: 120,
-                  overflow: 'auto',
-                  transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
-                  boxShadow: input ? '0 0 0 3px rgba(0,113,227,0.10)' : 'none',
-                  opacity: isThinking ? 0.55 : 1,
-                }}
-              />
-              <button
-                id="ask-agent-btn"
-                onClick={handleSend}
-                disabled={!input.trim() || isThinking}
-                style={{
-                  padding: '10px 18px', borderRadius: 11, border: 'none',
-                  background: (!input.trim() || isThinking)
-                    ? '#D2D2D7'
-                    : 'linear-gradient(135deg, #0071E3 0%, #005bbf 100%)',
-                  color: '#fff', fontSize: 14, fontWeight: 600,
-                  cursor: (!input.trim() || isThinking) ? 'not-allowed' : 'pointer',
-                  transition: 'all 0.15s ease', whiteSpace: 'nowrap',
-                  boxShadow: (!input.trim() || isThinking) ? 'none' : '0 3px 10px rgba(0,113,227,0.40)',
-                  flexShrink: 0, height: 44,
-                  display: 'flex', alignItems: 'center', gap: 7,
-                }}
-                onMouseEnter={e => {
-                  if (!input.trim() || isThinking) return;
-                  e.currentTarget.style.transform = 'translateY(-1px)';
-                  e.currentTarget.style.boxShadow = '0 5px 16px rgba(0,113,227,0.45)';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = (!input.trim() || isThinking)
-                    ? 'none' : '0 3px 10px rgba(0,113,227,0.40)';
-                }}
-              >
-                {isThinking ? (
-                  <>
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
-                      style={{ animation: 'spin 0.75s linear infinite' }}>
-                      <circle cx="7" cy="7" r="5.5" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" />
-                      <path d="M7 1.5A5.5 5.5 0 0 1 12.5 7" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-                    </svg>
-                    Thinking…
-                  </>
-                ) : (
-                  <>
-                    Ask Agent
-                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                      <path d="M2 6.5h9M7 2.5l4 4-4 4" stroke="white" strokeWidth="1.6"
-                        strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </>
-                )}
-              </button>
-            </div>
-            <p style={{ margin: '7px 0 0', fontSize: 11.5, color: '#86868B', textAlign: 'center', fontWeight: 400 }}>
-              Press{' '}
-              <kbd style={{ fontFamily: 'inherit', fontSize: 10.5, background: '#F2F2F7', padding: '1px 5px', borderRadius: 4, border: '1px solid #D2D2D7' }}>
-                ↵ Enter
-              </kbd>
-              {' '}to send ·{' '}
-              <kbd style={{ fontFamily: 'inherit', fontSize: 10.5, background: '#F2F2F7', padding: '1px 5px', borderRadius: 4, border: '1px solid #D2D2D7' }}>
-                ⇧ Shift + Enter
-              </kbd>
-              {' '}for new line
-            </p>
-          </div>
-        </main>
+      {/* ── ZONE 3A — Memory Sidebar ───────────────────────────────────── */}
+      <div className="zone-sidebar">
+        <Sidebar
+          open={sidebarOpen}
+          memories={memories}
+          sessions={sessions}
+          projects={projects}
+          activeProject={activeProject}
+          stats={stats}
+          isLoading={memoriesLoading || isSearching}
+          onRefresh={refreshMemories}
+          onSaveDecisionClick={() => setIsSaveModalOpen(true)}
+          onSearch={handleSearch}
+          onMemorySaved={refreshMemories}
+          onSessionSelect={handleSessionSelect}
+          onProjectSwitch={handleProjectSwitch}
+          onSettingsChange={handleSettingsChange}
+          className={sidebarGlow ? 'sidebar-glow' : ''}
+        />
       </div>
 
-      {/* ── Mobile-only CSS overrides ────────────────────────────────────── */}
+      <Outlet context={{
+        messages,
+        isLoading,
+        streamSteps,
+        activePersonaId,
+        PERSONAS,
+        setActivePersonaId,
+        handleSuggestion,
+        handleSubmit,
+        activeProject,
+        refreshMemories,
+        panelBase,
+        memories,
+        memoriesLoading,
+        stats,
+        sessions,
+        projects,
+        onRefresh: refreshMemories,
+        onSessionSelect: handleSessionSelect,
+        onProjectSwitch: handleProjectSwitch,
+        onSettingsChange: handleSettingsChange,
+        theme,
+        setTheme,
+        identity,
+      }} />
+
+      {/* ── CSS: animations, sidebar drawer, demo glow, print ───────────── */}
       <style>{`
-        @media (max-width: 720px) {
+        @keyframes demoPulse {
+          0%, 100% { box-shadow: 0 4px 16px rgba(0,113,227,0.40); }
+          50%       { box-shadow: 0 4px 28px rgba(0,113,227,0.75), 0 0 0 4px rgba(0,113,227,0.18); }
+        }
+        @keyframes sidebarGlowPulse {
+          0%, 100% { box-shadow: 0 0 0 2px var(--blue), 0 0 24px 6px rgba(0,113,227,0.30); }
+          50%       { box-shadow: 0 0 0 4px var(--blue), 0 0 48px 14px rgba(0,113,227,0.55); }
+        }
+        .sidebar-glow {
+          border: 2px solid var(--blue) !important;
+          animation: sidebarGlowPulse 1.2s ease-in-out infinite !important;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 768px) {
           .mobile-menu-btn { display: flex !important; }
           .sidebar-panel {
             position: fixed !important;
-            top: 52px !important; left: 0 !important; bottom: 0 !important;
+            top: 56px !important; left: 0 !important; bottom: 0 !important;
             width: 85vw !important; max-width: 340px !important;
             border-radius: 0 18px 18px 0 !important;
             z-index: 200;
@@ -1209,11 +1050,80 @@ export default function App() {
             box-shadow: 4px 0 24px rgba(0,0,0,0.14) !important;
           }
           .sidebar-panel.open { transform: translateX(0) !important; }
-          .sidebar-overlay { display: block !important; }
-          .layout-panels { padding: 10px !important; gap: 0 !important; }
-          .chat-panel { border-radius: 14px !important; }
+          .sidebar-overlay    { display: block !important; }
+          .layout-panels      { padding: 10px !important; gap: 0 !important; }
+          .chat-panel         { border-radius: 14px !important; }
+        }
+
+        /* ── Print report ── */
+        @media print {
+          body, html { margin: 0; padding: 0; }
+          body > *   { visibility: hidden; }
+          #print-report {
+            display: block !important; visibility: visible !important;
+            position: fixed; inset: 0; z-index: 99999;
+            background: var(--white); overflow: auto;
+            font-family: 'Inter', -apple-system, sans-serif;
+            color: var(--black); padding: 36px 48px;
+          }
+          #print-report * { visibility: visible !important; }
+          .print-header { border-bottom: 2px solid var(--blue); padding-bottom: 18px; margin-bottom: 28px; }
+          .print-header h1 { margin: 0 0 6px; font-size: 26px; font-weight: 800; color: var(--blue); }
+          .print-header p  { margin: 0; font-size: 13px; color: var(--gray-mid); }
+          .print-memory    { break-inside: avoid; border: 1px solid var(--border); border-radius: 10px; padding: 18px 22px; margin-bottom: 18px; }
+          .print-memory h2 { margin: 0 0 4px; font-size: 15px; font-weight: 700; color: var(--black); }
+          .print-memory .print-date    { font-size: 11px; color: var(--gray-mid); margin-bottom: 10px; }
+          .print-memory .print-content { font-size: 13px; line-height: 1.7; color: #3A3A3C; white-space: pre-wrap; }
+          .print-memory .print-tags    { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+          .print-memory .print-tag     { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: var(--blue-light); color: var(--blue); }
+          .print-footer { position: fixed; bottom: 24px; left: 48px; right: 48px; display: flex; justify-content: space-between; font-size: 10px; color: var(--gray-mid); border-top: 1px solid var(--border); padding-top: 8px; }
+          @page { margin: 0; size: A4; }
         }
       `}</style>
+
+      {/* ── Hidden print report ───────────────────────────────────────────── */}
+      <div id="print-report" style={{ display: 'none' }}>
+        <div className="print-header">
+          <h1>Eternal Architect — Decision Log</h1>
+          <p>
+            {activeProject}&nbsp;·&nbsp;
+            Exported on {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+          </p>
+        </div>
+        {exportMemories.length === 0 ? (
+          <p style={{ color: 'var(--gray-mid)', fontStyle: 'italic' }}>No memories found.</p>
+        ) : (
+          exportMemories.map((m, i) => {
+            const title   = extractTitle(m);
+            const date    = extractDate(m);
+            const content = m.content || (m.messages?.[0]?.content) || extractContent(m);
+            const tags    = Array.isArray(m.tag?.tags) ? m.tag.tags
+              : typeof m.tag === 'object' && m.tag
+                ? Object.entries(m.tag)
+                    .filter(([k]) => !['timestamp','project'].includes(k))
+                    .map(([k, v]) => `${k}: ${v}`)
+                : [];
+            return (
+              <div key={m.id || i} className="print-memory">
+                <h2>{title}</h2>
+                {date && <div className="print-date">{date}</div>}
+                <div className="print-content">{content}</div>
+                {tags.length > 0 && (
+                  <div className="print-tags">
+                    {tags.map((t, j) => <span key={j} className="print-tag">{t}</span>)}
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+        <div className="print-footer">
+          <span>SR Enterprises · Rayyan Shaikh</span>
+          <span>SentientOS — Eternal Architect Decision Log</span>
+          <span>{new Date().toLocaleDateString()}</span>
+        </div>
+      </div>
+
     </div>
   );
 }

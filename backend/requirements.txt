@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+httpx
+python-dotenv
+anthropic
+python-multipart
+pymongo
+certifi
+pypdf
+python-docx
+google-genai
+google-generativeai
