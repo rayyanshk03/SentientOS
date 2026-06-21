@@ -1,0 +1,200 @@
+GUIDELINES  
+1. Don’t Try to Build Everything 
+> This is the biggest hackathon killer.
+> Your problem statement is massive.
+You CANNOT perfectly solve:
+•Heat mapping
+•Climate simulation
+•AI prediction
+•City planning
+•Cost optimization
+•Real-time satellite integration
+in limited time.
+Instead:
+ > **Build ONE strong core 
+Recommended winning core:
+“AI-driven hotspot detection + optimized cooling recommendation” 
+Then add small premium features.
+**This wins more than 20 unﬁnished features. 
+2. Your Biggest Weapon = Storytelling 
+Judges remember stories.
+Your pitch should feel like:
+“Pune is becoming hotter yearly. Authorities struggle to identify high-risk heat 
+zones and decide the best cooling intervention. Team Orion developed an 
+explainable geospatial AI system that identiﬁes hotspots and recommends 
+optimized cooling strategies using satellite and meteorological data.” 
+That sounds premium.
+Never say:
+	 “We trained a random forest model.”
+No judge cares initially.
+First tell impact. > Then tech. 
+3. Choose One City and Dominate It 
+Huge advice.
+DO NOT: 
+❌ Train on all India
+DO: 
+✅ One city deeply
+Example:
+ > **Pune 
+Why?
+•Data easier
+•Faster experimentation
+•Local relevance
+•Easier validation
+You can say:
+“Framework is scalable to other Indian cities.” 
+**Judges will accept. 
+4. Documentation = Secret Weapon 
+>> Most teams ignore documentation.
+You should create:
+Research Bible (Master Doc) 
+Contains:
+•Problem statement breakdown
+•Papers
+•Dataset links
+•Model choices
+•Experiments
+•Failures
+•Results
+•Screenshots
+•Meeting notes
+Why? 
+	 >> Because during PPT:
+Someone forgets? —— No issue. 
+Everything documented.
+5. DAILY Internal Review 
+Every 3 days ask:
+1.What is done? 
+2.What is blocked? 
+3.What failed? 
+4.What changed? 
+This prevents chaos.
+
+7. GitHub Discipline (CRITICAL) 
+Every member must push code.
+Structure:
+-main 
+-development 
+-frontend 
+-ml-model 
+Use commits like:
+-Added hotspot prediction model 
+-Integrated NDVI pipeline 
+-Fixed GIS preprocessing 
+Looks professional.
+Judges sometimes check.
+8. Start Presentation Early 
+**Huge mistake: 
+	 >> Teams make PPT one night before.
+Winning teams: 
+Build PPT alongside project.
+Every week: 
+Add:
+•Results
+•Graphs
+•Screenshots
+**Final PPT becomes easy. 
+9. Create a WOW Factor 
+You need one feature that makes judges say:
+“Oh wow.” 
+Examples:
+1. Option A (Recommended) 
+Interactive map: 
+	 User clicks region →
+AI says:
+1.Heat Cause
+•Low vegetation
+•High concrete density
+2.Best Fix
+•Add 20% tree cover
+3.Expected Cooling
+•2.3°C reduction
+Very impressive.
+2. Option B 
+Future prediction:
+“How city will look in 2030 heat-wise.” 
+3. Option C 
+Cost vs Cooling graph. 
+**Looks practical. 
+Method Cost Cooling
+Trees Low High
+Cool roof Medium High
+10. Prepare Answers for Judge Questions 
+You WILL be grilled.
+Prepare beforehand.
+1. Why Random Forest? 
+	 > Because interpretable and robust for tabular geospatial data.
+2. Why not Deep Learning? 
+	 > Insu ﬃcient labeled spatial thermal data + interpretability concerns.
+3. Why these datasets? 
+	 > Satellite + meteorological complement each other.
+4. Limitations? 
+	  > Cloud cover, temporal variation, city-speci ﬁc training.
+**Judges LOVE honesty. 
+11. Time Allocation Rule 
+Spend:
+-40% Model 
+-20% Dashboard 
+-20% Documentation 
+-20% Presentation 
+Most teams do: 
+	  >> 90% coding.
+**Then lose. 
+12. Don’t Fake Results 
+**Very important. 
+Judges are experienced. 
+Instead of: 
+	 >> 
+ ❌ “99.9% accuracy”
+Say: 
+	 >> 
+ ✅ “Model achieved robust predictive performance with interpretable 	 	
+outputs.”
+** Be realistic. 
+13. Use Research Words Carefully 
+These words sound strong:
+•Explainable AI
+•Geospatial Intelligence
+•Physics-informed ML
+•Urban Heat Island Analysis
+•Scenario Optimization
+•Decision Support System
+•Sustainable Urban Planning
+Use in PPT.
+**But understand them. 
+14. One Team Rule 
+**No ego. 
+No: 
+	 “This is my work.”
+Everything shared.
+All 3 must know: 
+•Problem
+•Model
+•PPT
+•Demo
+Judges ask random member questions. 
+** If one member fails badly → huge damage. 
+15. My Biggest Advice 
+Don’t chase: 
+	 “Most advanced project”
+Chase:
+Most complete project
+Winning project checklist: 
+✅ Works 
+✅ Clean architecture 
+✅ Good reasoning 
+✅ Explainable 
+✅ Real use case 
+✅ Strong demo 
+✅ Strong speaking
+
+strongest chance is: 
+“Explainable Geospatial AI + Cooling Optimization Dashboard 
+for Pune” 
+PROGRESS 
+1.We have to make a Progress report of everyone work on our own  
+2. Daily meet online  :  
+1. What did we complete today?
+	 2. What is blocked?
+	 3. What will we ﬁnish tomorrow?
+3. Do have everyone's report with them  

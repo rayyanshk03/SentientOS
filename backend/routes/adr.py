@@ -53,7 +53,14 @@ async def create_adr(req: CreateAdrRequest):
         category="Architecture Decision Record",
         source="adr_module",
         project_id=req.projectId,
-        tags=["type:adr", "decision:true", f"author:{req.author}"]
+        tags=[
+            "type:adr", 
+            "decision:true", 
+            f"author:{req.author}",
+            f"title:{req.decisionName}",
+            f"timestamp:{datetime.utcnow().isoformat()}",
+            f"description:{req.problem[:120]}..."
+        ]
     )
     
     if not session_id:
@@ -78,19 +85,14 @@ async def get_adrs(limit: int = 50):
         # We look for the custom "type:adr" or category "Architecture Decision Record"
         if tag.get("type") == "adr" or tag.get("category") == "Architecture Decision Record":
             # Extract basic info
-            title = s.get("title") or tag.get("title") or "Unnamed Decision"
-            
-            # Use raw message text if available to parse out sections,
-            # but since list_recent_memories just gives sources, we just return what we have.
-            # To get full text we usually need to fetch the session, 
-            # but for the timeline, the title/timestamp and description/summary from Parcle is often enough.
+            title = tag.get("title") or s.get("title") or "Unnamed Decision"
             description = tag.get("description", "A documented architecture decision.")
             
             adrs.append({
                 "id": s.get("session_id") or s.get("id"),
                 "title": title,
                 "description": description,
-                "timestamp": s.get("updated_at") or s.get("created_at"),
+                "timestamp": tag.get("timestamp") or s.get("updated_at") or s.get("created_at"),
                 "author": tag.get("author", "Unknown"),
             })
             
