@@ -40,7 +40,13 @@ async def create_knowledge(req: CreateKnowledgeRequest):
         category=req.category,
         source="knowledge_module",
         project_id=req.projectId,
-        tags=["type:knowledge", f"author:{req.author}"]
+        tags=[
+            "type:knowledge", 
+            f"author:{req.author}",
+            f"title:{req.title}",
+            f"timestamp:{datetime.utcnow().isoformat()}",
+            f"description:{req.content[:120]}..."
+        ]
     )
     
     if not session_id:
@@ -64,7 +70,7 @@ async def get_knowledge(limit: int = 50):
         tag = s.get("tag") or {}
         # We look for custom "type:knowledge"
         if tag.get("type") == "knowledge":
-            title = s.get("title") or tag.get("title") or "Unnamed Knowledge"
+            title = tag.get("title") or s.get("title") or "Unnamed Knowledge"
             description = tag.get("description", "")
             
             records.append({
@@ -72,7 +78,7 @@ async def get_knowledge(limit: int = 50):
                 "title": title,
                 "category": tag.get("category", "General"),
                 "description": description,
-                "timestamp": s.get("updated_at") or s.get("created_at"),
+                "timestamp": tag.get("timestamp") or s.get("updated_at") or s.get("created_at"),
                 "author": tag.get("author", "Unknown"),
             })
             

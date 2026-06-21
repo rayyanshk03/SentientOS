@@ -214,7 +214,7 @@ export default function KnowledgePage() {
       </div>
 
       {/* Log Knowledge Modal */}
-      <Modal isOpen={isCreateOpen} onClose={() => !isCreating && setIsCreateOpen(false)} title="Log Engineering Knowledge">
+      <Modal open={isCreateOpen} onClose={() => !isCreating && setIsCreateOpen(false)} title="Log Engineering Knowledge">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <Input 
             label="Title" 
