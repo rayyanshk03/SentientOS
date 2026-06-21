@@ -3,14 +3,66 @@ from parcle import list_recent_memories
 
 router = APIRouter()
 
-global_stats = {"queriesToday": 0, "decisionsSaved": 0, "lastActive": None}
+
+
+from datetime import datetime, timedelta
 
 @router.get("/stats")
 async def get_stats():
-    memories = await list_recent_memories(100)
+    from database import get_collections
+    memories = await list_recent_memories(1000) # Fetch up to 1000 to get a solid recent block
+    cols = get_collections()
+    
+    # 1. Total Memories
+    total_memories = len(memories)
+    
+    # 2. Decisions Ingested
+    decisions_saved = 0
+    for m in memories:
+        tag = m.get("tag", {})
+        if tag.get("type") == "adr" or tag.get("category") == "Architecture Decision Record":
+            decisions_saved += 1
+            
+    # 3. Queries Contextualized & Agent Latency
+    queries_today = 0
+    avg_response = 0.0
+    if cols and cols.get("agent_logs") is not None:
+        agent_logs = list(cols["agent_logs"].find({}, {"timeTaken": 1, "createdAt": 1}))
+        queries_today = len(agent_logs)
+        if queries_today > 0:
+            total_time_ms = sum(log.get("timeTaken", 0) for log in agent_logs)
+            avg_response = round((total_time_ms / queries_today) / 1000, 1)
+
+    # 4. Ingestion Growth (Weekly)
+    # We want an array of 7 integers corresponding to Monday=0, Sunday=6
+    weekly_growth = [0] * 7
+    now = datetime.utcnow()
+    # Go back 7 days
+    start_of_week = now - timedelta(days=7)
+    
+    for m in memories:
+        ts_str = m.get("updated_at") or m.get("created_at")
+        if not ts_str:
+            continue
+        try:
+            # Parse ISO 8601 (e.g. "2024-05-18T10:30:00Z" or "2024-05-18T10:30:00.123Z")
+            ts_str = ts_str.replace("Z", "+00:00")
+            dt = datetime.fromisoformat(ts_str).replace(tzinfo=None)
+            if dt >= start_of_week:
+                # weekday(): Monday is 0, Sunday is 6
+                day_idx = dt.weekday()
+                weekly_growth[day_idx] += 1
+        except Exception:
+            pass
+
     return {
-        **global_stats,
-        "totalMemories": len(memories)
+        "totalMemories": total_memories,
+        "queriesToday": queries_today,
+        "decisionsSaved": decisions_saved,
+        "avgResponseTime": avg_response,
+        "weeklyGrowth": weekly_growth,
+        "mongoConnected": cols is not None and cols.get("projects") is not None,
+        "parcleOnline": type(memories) is list
     }
 
 @router.get("/projects")

@@ -115,8 +115,8 @@ export default function MetricsPage() {
           
           <div style={{ border: '1px solid var(--border)', borderRadius: 10, padding: 16, display: 'flex', justifyContent: 'center' }}>
             <svg width="100%" height="150" viewBox="0 0 340 100">
-              {[2, 0, 3, 1, 4, 2, 3].map((val, idx) => {
-                const maxVal = 4;
+              {(stats.weeklyGrowth || [0, 0, 0, 0, 0, 0, 0]).map((val, idx) => {
+                const maxVal = Math.max(...(stats.weeklyGrowth || [0]), 4);
                 const barHeight = val > 0 ? (val / maxVal) * 70 : 2;
                 const x = idx * 44 + 20;
                 const y = 80 - barHeight;
@@ -155,11 +155,11 @@ export default function MetricsPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: 13, color: 'var(--black)' }}>MongoDB Cluster</span>
-              <Badge color="green">Connected</Badge>
+              <Badge color={stats.mongoConnected !== false ? "green" : "red"}>{stats.mongoConnected !== false ? "Connected" : "Disconnected"}</Badge>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: 13, color: 'var(--black)' }}>Parcle API Server</span>
-              <Badge color="green">Online</Badge>
+              <Badge color={stats.parcleOnline !== false ? "green" : "red"}>{stats.parcleOnline !== false ? "Online" : "Offline"}</Badge>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: 13, color: 'var(--black)' }}>Memory Load</span>
