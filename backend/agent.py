@@ -224,21 +224,26 @@ async def run_agent(user_task: str, persona: str = 'architect', chat_history: li
         await on_step(f'📚 Found {len(parcle_memories)} relevant memories')
 
     retrieved_memories = []
+    summary_parts = []
     for i, m in enumerate(parcle_memories):
         ans = m.get('answer', '')
         title = ans.split('\n')[0].lstrip('# ').strip()[:90] if ans else f"Memory {i+1}"
+        
+        citations = m.get('citations') or []
+        citation_ids = [c.get('id', c.get('session_id', str(c))) for c in citations]
+        
         retrieved_memories.append({
             "title": title,
             "confidence": round((m.get('confidence', 0)) * 100),
-            "citationIds": [c.get('id', c.get('session_id', str(c))) for c in m.get('citations', [])]
+            "citationIds": citation_ids
         })
+        
+        mem_id = citation_ids[0] if citation_ids else 'unknown'
+        summary_parts.append(f"Memory {i+1} (ID: {mem_id} | confidence: {round(m.get('confidence', 0)*100)}%):\n{ans}")
 
     memory_summary = 'No prior decisions found for this project yet.'
-    if parcle_memories:
-        memory_summary = "\n\n".join(
-            f"Memory {i+1} (ID: {m.get('citations', [{}])[0].get('session_id', m.get('citations', [{}])[0].get('id', 'unknown'))} | confidence: {round(m.get('confidence', 0)*100)}%):\n{m.get('answer', '')}"
-            for i, m in enumerate(parcle_memories)
-        )
+    if summary_parts:
+        memory_summary = "\n\n".join(summary_parts)
 
     if injected_doc_text:
         memory_summary = injected_doc_text + (memory_summary if parcle_memories else "")
