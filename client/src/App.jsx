@@ -411,7 +411,7 @@ export default function App() {
         body: JSON.stringify({
           userMessage: userMsg,
           agentResponse: agentMsg,
-          projectId: 'default-project',
+          projectId: activeProject,
           autoSave: shouldAutoSave,
         }),
       });
@@ -552,7 +552,7 @@ export default function App() {
     setSidebarOpen(false);
 
     const encoded = encodeURIComponent(task);
-    const eventSrc  = new EventSource(`${import.meta.env.VITE_API_URL}/api/agent?task=${encoded}&persona=${activePersonaId}&sessionId=${sessionId}`);
+    const eventSrc  = new EventSource(`${import.meta.env.VITE_API_URL}/api/agent?task=${encoded}&persona=${activePersonaId}&sessionId=${sessionId}&projectId=${activeProject}`);
 
     eventSrc.addEventListener('step', (e) => {
       setStreamSteps(prev => [...prev, e.data]);

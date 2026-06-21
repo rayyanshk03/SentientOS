@@ -77,24 +77,4 @@ async def get_projects():
     except Exception as e:
         return {"error": str(e)}
 
-@router.get("/conversations/{project_id}")
-async def get_conversations(project_id: str):
-    from database import get_collections
-    try:
-        cols = get_collections()
-        if not cols or cols["conversations"] is None:
-            return {"error": "MongoDB not connected"}
-        docs = list(cols["conversations"].find({"projectId": project_id}, {"_id": 0}).sort("updatedAt", -1).limit(20))
-        sessions = []
-        for doc in docs:
-            msgs = doc.get("messages", [])
-            last_msg = msgs[-1].get("content", "")[:100] if msgs else ""
-            sessions.append({
-                "sessionId": doc.get("sessionId"),
-                "messageCount": len(msgs),
-                "lastMessagePreview": last_msg,
-                "date": doc.get("updatedAt") or doc.get("createdAt")
-            })
-        return {"sessions": sessions}
-    except Exception as e:
-        return {"error": str(e)}
+
