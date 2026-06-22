@@ -20,8 +20,6 @@ export default function Navbar({
 
   const projects = [
     { name: 'SentientOS', color: '#34C759' },
-    { name: 'Website Redesign', color: 'var(--blue)' },
-    { name: 'Mobile App', color: '#FF9500' },
   ];
 
   return (
@@ -33,26 +31,27 @@ export default function Navbar({
         alignItems: 'center',
         justifyContent: 'space-between',
         fontFamily: 'var(--font)',
+        letterSpacing: '-0.3px',
       }}
     >
       {/* LEFT SECTION */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         {/* Mobile menu toggle button */}
         {onToggleSidebar && (
           <button
             onClick={onToggleSidebar}
             className="mobile-menu-btn"
             style={{
-              display: 'none', // Handled via media query in CSS
+              display: 'none',
               width: 32,
               height: 32,
               alignItems: 'center',
               justifyContent: 'center',
-              border: '1px solid var(--border)',
-              background: 'var(--gray-light)',
-              borderRadius: 'var(--radius-input)',
+              border: 'none',
+              background: 'rgba(0,0,0,0.05)',
+              borderRadius: '8px',
               cursor: 'pointer',
-              marginRight: 8,
+              transition: 'var(--transition)'
             }}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -62,18 +61,19 @@ export default function Navbar({
         )}
 
         {/* Logo group */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div
             style={{
-              width: 28,
-              height: 28,
-              background: 'linear-gradient(135deg, #0071E3, #00A3FF)',
+              width: 30,
+              height: 30,
+              background: 'linear-gradient(135deg, #0071E3 0%, #0051a8 100%)',
               borderRadius: '8px',
               padding: '6px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: '#FFFFFF',
+              boxShadow: '0 4px 12px rgba(0, 113, 227, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.4)',
             }}
           >
             <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -88,18 +88,18 @@ export default function Navbar({
               <path d="M17.5 19.5 20 22" />
             </svg>
           </div>
-          <span style={{ fontWeight: 600, fontSize: '16px', color: '#1D1D1F' }}>
-            Eternal Architect
+          <span style={{ fontWeight: 700, fontSize: '17px', color: '#1d1d1f', letterSpacing: '-0.5px' }}>
+            SentientOS
           </span>
           <span
             style={{
-              background: '#F5F5F7',
-              border: '1px solid #E5E5EA',
-              borderRadius: '980px',
-              padding: '2px 8px',
-              fontWeight: 500,
+              background: 'rgba(0,0,0,0.04)',
+              borderRadius: '6px',
+              padding: '3px 8px',
+              fontWeight: 600,
               fontSize: '11px',
-              color: '#6E6E73',
+              color: '#86868b',
+              letterSpacing: '0.2px'
             }}
           >
             v1.0
@@ -107,159 +107,44 @@ export default function Navbar({
         </div>
       </div>
 
-      {/* CENTER SECTION (Absolute center) */}
-      <div
-        style={{
-          position: 'absolute',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 10,
-        }}
-      >
-        <div style={{ position: 'relative' }}>
+
+
+      {/* RIGHT SECTION */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', zIndex: 10 }}>
+        
+        {/* Sleek Action Buttons Group */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(0,0,0,0.03)', padding: '4px', borderRadius: '980px', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)' }}>
+          {/* Demo Button */}
           <button
-            onClick={() => setDropdownOpen(!dropdownOpen)}
+            onClick={onDemoClick}
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 8,
-              padding: '6px 14px 6px 12px',
-              border: '1px solid #E5E5EA',
+              gap: 6,
+              padding: '6px 14px',
+              fontSize: '13px',
+              fontWeight: 600,
+              background: isDemoRunning ? '#FF3B30' : '#FFFFFF',
+              color: isDemoRunning ? '#FFF' : '#1d1d1f',
+              border: 'none',
               borderRadius: '980px',
-              background: dropdownOpen ? '#EBEBEB' : '#F5F5F7',
               cursor: 'pointer',
               fontFamily: 'inherit',
-              fontWeight: 500,
-              fontSize: '13px',
-              color: '#1D1D1F',
-              transition: 'background 0.15s ease',
-              outline: 'none',
+              transition: 'all 0.2s ease',
+              boxShadow: isDemoRunning ? '0 4px 12px rgba(255, 59, 48, 0.3)' : '0 2px 8px rgba(0,0,0,0.04)',
             }}
-            onMouseEnter={e => { if (!dropdownOpen) e.currentTarget.style.background = '#EBEBEB'; }}
-            onMouseLeave={e => { if (!dropdownOpen) e.currentTarget.style.background = '#F5F5F7'; }}
           >
-            <span>{activeProject}</span>
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ transform: dropdownOpen ? 'rotate(180deg)' : 'none', transition: 'var(--transition)' }}>
-              <path d="M3 4.5l3 3 3-3" stroke="#6E6E73" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-
-          {/* Dropdown menu */}
-          {dropdownOpen && (
-            <div
-              style={{
-                position: 'absolute',
-                top: '100%',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                marginTop: 8,
-                minWidth: 220,
-                background: 'rgba(255, 255, 255, 0.95)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                border: '1px solid rgba(0, 0, 0, 0.08)',
-                borderRadius: '14px',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
-                padding: '6px',
-                zIndex: 101,
-              }}
-            >
-              {projects.map(proj => {
-                const isActive = proj.name === activeProject;
-                return (
-                  <button
-                    key={proj.name}
-                    onClick={() => setDropdownOpen(false)}
-                    style={{
-                      width: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 10,
-                      padding: '10px 12px',
-                      border: 'none',
-                      background: 'transparent',
-                      borderRadius: '10px',
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                      fontFamily: 'inherit',
-                      fontSize: '14px',
-                      fontWeight: isActive ? 600 : 400,
-                      color: isActive ? '#0071E3' : '#1D1D1F',
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.background = '#F5F5F7'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                  >
-                    {isActive ? (
-                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#0071E3' }} />
-                    ) : (
-                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: proj.color }} />
-                    )}
-                    <span>{proj.name}</span>
-                  </button>
-                );
-              })}
-              <div style={{ height: 1, background: '#E5E5EA', margin: '6px 0' }} />
-              <button
-                onClick={() => setDropdownOpen(false)}
-                style={{
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: '10px 12px',
-                  border: 'none',
-                  background: 'transparent',
-                  borderRadius: '10px',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  fontFamily: 'inherit',
-                  color: '#0071E3',
-                  fontSize: '14px',
-                  fontWeight: 500,
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = '#F5F5F7'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-              >
-                + New Project
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* RIGHT SECTION */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', zIndex: 10 }}>
-        
-        {/* Sleek Action Buttons Group */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '4px' }}>
-          {/* Demo Button */}
-          <Button
-            variant={isDemoRunning ? 'danger' : 'secondary'}
-            size="sm"
-            onClick={onDemoClick}
-            style={{
-              padding: '6px 12px',
-              fontSize: '12px',
-              borderRadius: '980px',
-              height: 28,
-            }}
-            icon={
-              isDemoRunning ? (
-                <svg width="8" height="8" viewBox="0 0 10 10" fill="none" style={{ marginRight: 2 }}>
-                  <rect x="1" y="1" width="3" height="8" rx="1" fill="currentColor" />
-                  <rect x="6" y="1" width="3" height="8" rx="1" fill="currentColor" />
-                </svg>
-              ) : (
-                <svg width="8" height="8" viewBox="0 0 10 10" fill="none" style={{ marginRight: 2 }}>
-                  <path d="M2 1l7 4-7 4V1z" fill="currentColor" />
-                </svg>
-              )
-            }
-          >
+            {isDemoRunning ? (
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <rect x="2" y="2" width="6" height="6" rx="1" fill="currentColor" />
+              </svg>
+            ) : (
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <path d="M3 2l5 3-5 3V2z" fill="currentColor" />
+              </svg>
+            )}
             {isDemoRunning ? `Demo (${demoStep}/5)` : 'Demo'}
-          </Button>
+          </button>
 
           {/* Standup Button */}
           <button
@@ -267,21 +152,20 @@ export default function Navbar({
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 4,
-              padding: '4px 10px',
-              fontSize: '12px',
-              fontWeight: 500,
+              gap: 6,
+              padding: '6px 12px',
+              fontSize: '13px',
+              fontWeight: 600,
               background: 'transparent',
-              border: '1px solid var(--border)',
+              border: 'none',
               borderRadius: '980px',
-              color: 'var(--gray-dark)',
+              color: '#515154',
               cursor: 'pointer',
-              height: 28,
               fontFamily: 'inherit',
-              transition: 'var(--transition)',
+              transition: 'background 0.2s ease',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--gray-light)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; e.currentTarget.style.color = '#1d1d1f'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#515154'; }}
           >
             <span>📋</span> Standup
           </button>
@@ -291,22 +175,22 @@ export default function Navbar({
             onClick={onOpenShortcuts}
             title="Keyboard shortcuts"
             style={{
-              width: 28,
-              height: 28,
+              width: 32,
+              height: 32,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               background: 'transparent',
-              border: '1px solid var(--border)',
+              border: 'none',
               borderRadius: '50%',
-              color: 'var(--gray-mid)',
-              fontSize: 13,
-              fontWeight: 600,
+              color: '#86868b',
+              fontSize: 14,
+              fontWeight: 700,
               cursor: 'pointer',
-              transition: 'var(--transition)',
+              transition: 'all 0.2s ease',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--gray-light)'; e.currentTarget.style.color = 'var(--black)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--gray-mid)'; }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; e.currentTarget.style.color = '#1d1d1f'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#86868b'; }}
           >
             ?
           </button>
@@ -316,30 +200,29 @@ export default function Navbar({
             onClick={onToggleTheme}
             title="Toggle light/dark mode"
             style={{
-              width: 28,
-              height: 28,
+              width: 32,
+              height: 32,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               background: 'transparent',
-              border: '1px solid var(--border)',
+              border: 'none',
               borderRadius: '50%',
-              color: 'var(--gray-mid)',
+              color: '#86868b',
               cursor: 'pointer',
-              transition: 'var(--transition)',
+              transition: 'all 0.2s ease',
               position: 'relative',
               overflow: 'hidden'
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--gray-light)'; e.currentTarget.style.color = 'var(--black)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--gray-mid)'; }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.04)'; e.currentTarget.style.color = '#1d1d1f'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#86868b'; }}
           >
-            {/* Animated SVG for sun/moon */}
             <svg 
-              width="14" height="14" 
+              width="16" height="16" 
               viewBox="0 0 24 24" 
               fill="none" 
               stroke="currentColor" 
-              strokeWidth="2" 
+              strokeWidth="2.2" 
               strokeLinecap="round" 
               strokeLinejoin="round"
               style={{
@@ -349,13 +232,8 @@ export default function Navbar({
               }}
             >
               {theme === 'dark' ? (
-                // Moon icon
-                <path 
-                  d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
-                  style={{ opacity: 1, transition: 'opacity 0.3s ease' }}
-                />
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
               ) : (
-                // Sun icon
                 <>
                   <circle cx="12" cy="12" r="5" />
                   <line x1="12" y1="1" x2="12" y2="3" />
@@ -373,56 +251,58 @@ export default function Navbar({
         </div>
 
         {/* Separator */}
-        <div style={{ width: 1, height: 20, background: '#E5E5EA' }} />
+        <div style={{ width: 1, height: 24, background: 'rgba(0,0,0,0.08)' }} />
 
-        {/* Memory Count Pill */}
-        <div
-          style={{
-            background: '#E8F1FB',
-            color: '#0071E3',
-            borderRadius: '980px',
-            padding: '4px 10px',
-            fontWeight: 600,
-            fontSize: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 4,
-          }}
-        >
-          <span>🧠</span> {totalMemories}
-        </div>
+        {/* Profile Group */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* Memory Count Pill */}
+          <div
+            style={{
+              background: 'rgba(0, 113, 227, 0.08)',
+              color: '#0071E3',
+              borderRadius: '980px',
+              padding: '6px 12px',
+              fontWeight: 700,
+              fontSize: '13px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.5)',
+            }}
+          >
+            <span style={{ filter: 'drop-shadow(0 2px 4px rgba(0,113,227,0.2))' }}>🧠</span> {totalMemories}
+          </div>
 
-        {/* Separator */}
-        <div style={{ width: 1, height: 20, background: '#E5E5EA' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
+               onMouseEnter={e => e.currentTarget.lastChild.style.transform = 'scale(1.05)'}
+               onMouseLeave={e => e.currentTarget.lastChild.style.transform = 'scale(1)'}>
+            {/* User Greeting */}
+            <span style={{ fontWeight: 600, fontSize: '14px', color: '#1d1d1f', whiteSpace: 'nowrap' }}>
+              {identity?.name ? `Hey, ${identity.name.split(' ')[0]} 👋` : 'Hey, Rayyan 👋'}
+            </span>
 
-        {/* User Greeting */}
-        <span style={{ fontWeight: 500, fontSize: '13px', color: 'var(--black)', whiteSpace: 'nowrap' }}>
-          {identity?.name ? `Hey, ${identity.name.split(' ')[0]} 👋` : 'Welcome 👋'}
-        </span>
-
-        {/* User Avatar */}
-        <div
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #0071E3, #00A3FF)',
-            color: '#FFFFFF',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '13px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            transition: 'transform 0.15s ease',
-            boxShadow: '0 2px 8px rgba(0,113,227,0.3)',
-          }}
-          onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-          onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-        >
-          {identity?.name 
-            ? identity.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
-            : 'U'}
+            {/* User Avatar */}
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #0071E3 0%, #0051a8 100%)',
+                color: '#FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '14px',
+                fontWeight: 700,
+                transition: 'transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1)',
+                boxShadow: '0 4px 12px rgba(0, 113, 227, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.4)',
+              }}
+            >
+              {identity?.name 
+                ? identity.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+                : 'R'}
+            </div>
+          </div>
         </div>
       </div>
     </header>

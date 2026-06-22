@@ -87,39 +87,66 @@ async def get_knowledge(limit: int = 50):
 @router.post("/knowledge/search")
 async def search_knowledge(req: SearchKnowledgeRequest):
     """
-    A Global RAG endpoint. Searches Parcle memory across ALL types, then summarizes using LLM.
+    A Global RAG endpoint. Searches Parcle memory (with a local DB fallback), then summarizes using Gemini LLM.
     """
     import asyncio
-    from agent import call_groq
+    from agent import call_gemini
+    from database import get_collections
     
-    # 1. Search Parcle for the user query
-    results = await query_memory(req.query)
-    
-    if not results or not results[0].get("citations"):
-        return {"success": True, "answer": "I couldn't find any relevant engineering knowledge in the memory bank."}
-        
-    # 2. Extract context from citations
     context_chunks = []
-    for r in results:
-        for cit in r.get("citations", []):
-            text = cit.get("text", "")
-            if text and len(text) > 20:
-                context_chunks.append(text)
-                
-    context_text = "\n\n---\n\n".join(context_chunks[:7]) # Top 7 chunks for broader global context
     
-    # 3. Ask Groq to synthesize the answer
+    # 1. Try Parcle semantic search
+    try:
+        results = await query_memory(req.query)
+        if results and results[0].get("citations"):
+            for r in results:
+                for cit in r.get("citations", []):
+                    text = cit.get("text", "")
+                    if text and len(text) > 20:
+                        context_chunks.append(text)
+    except Exception as e:
+        print(f"[Knowledge Search] Parcle timed out, falling back to local DB: {e}")
+    
+    # 2. Fallback to Local DB search if Parcle failed or returned nothing
+    if not context_chunks:
+        try:
+            db_collections = await get_collections()
+            if db_collections:
+                # Basic text search fallback (case-insensitive regex on title or content)
+                import re
+                query_regex = re.compile(req.query, re.IGNORECASE)
+                cursor = db_collections["sources"].find({
+                    "$or": [
+                        {"title": query_regex},
+                        {"content": query_regex},
+                        {"tag.title": query_regex}
+                    ]
+                }).limit(5)
+                
+                async for memory in cursor:
+                    content = memory.get("content", "")
+                    if content:
+                        context_chunks.append(content)
+        except Exception as db_e:
+            print(f"[Knowledge Search] Local DB fallback failed: {db_e}")
+            
+    if not context_chunks:
+        return {"success": True, "answer": "I couldn't find any relevant engineering knowledge in the memory bank."}
+                
+    context_text = "\n\n---\n\n".join(context_chunks[:7]) # Top 7 chunks
+    
+    # 3. Ask Gemini to synthesize the answer
     system_prompt = """You are an expert AI engineering assistant. Your team members rely on you to search the project's memory bank (which includes architecture decisions, bugs, and explicit coding standards).
 When asked an engineering or architectural question, use the provided context from the memory bank to synthesize a definitive, accurate answer.
 - Do not hallucinate external information. Only use the provided context.
-- Be direct and list bullet points if appropriate (e.g. if listing coding standards or rules).
+- Be direct and list bullet points if appropriate.
 - If the context doesn't contain the answer, simply state that it's not documented yet."""
 
     prompt = f"Question: {req.query}\n\nContext from memory bank:\n{context_text}"
     
     try:
         answer = await asyncio.wait_for(
-            call_groq(system_prompt, prompt),
+            call_gemini(system_prompt, prompt),
             timeout=25.0
         )
         return {"success": True, "answer": answer}

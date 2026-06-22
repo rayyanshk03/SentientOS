@@ -91,39 +91,43 @@ async def get_bugs(limit: int = 50):
 @router.post("/bugs/search")
 async def search_bug(req: SearchBugRequest):
     """
-    Uses the Parcle search API to find the bug and then Groq LLM to summarize the solution.
+    Finds the bug locally in MongoDB and uses Gemini LLM to summarize the solution.
     """
     import asyncio
-    from agent import call_groq
+    from agent import call_gemini
+    from database import get_collections
     
-    # 1. Search Parcle for the specific bug query
-    search_query = f"Bug fix solution for {req.query}"
-    results = await query_memory(search_query)
-    
-    if not results or not results[0].get("citations"):
-        return {"success": True, "answer": f"I couldn't find a past bug fix matching '{req.query}' in the memory bank."}
+    # 1. Search local DB for the specific bug
+    db_collections = await get_collections()
+    if not db_collections:
+        return {"success": False, "error": "Database connection failed"}
         
-    # 2. Extract context from citations
-    context_chunks = []
-    for r in results:
-        for cit in r.get("citations", []):
-            text = cit.get("text", "")
-            if text and len(text) > 20:
-                context_chunks.append(text)
-                
-    context_text = "\n\n---\n\n".join(context_chunks[:5]) # Top 5 chunks
+    memory = await db_collections["sources"].find_one({"title": req.query})
     
-    # 3. Ask Groq to synthesize the root cause and solution
-    system_prompt = """You are an AI engineering assistant. A developer is asking if we have seen a specific bug before.
-Use the provided Bug Fix context to summarize the previously documented solution.
-Clearly state the Root Cause and the Solution. If there are multiple relevant past bugs, summarize the most relevant ones.
-Do not hallucinate; only use the provided context. Keep your response concise, helpful, and direct."""
+    if not memory:
+        # Fallback to checking tag.title
+        memory = await db_collections["sources"].find_one({"tag.title": req.query})
+        
+    if not memory:
+        return {"success": True, "answer": f"I couldn't find a Bug Fix record for '{req.query}' in the memory bank."}
+        
+    # 2. Extract context
+    context_text = memory.get("content", "")
+    
+    if not context_text:
+        return {"success": True, "answer": f"The Bug Fix record for '{req.query}' has no detailed context."}
+    
+    # 3. Ask Gemini to summarize
+    system_prompt = """You are a Senior Debugging Assistant explaining a past bug fix to a teammate.
+Use the provided context to explain what caused the bug and how it was resolved.
+Do not hallucinate; only use the provided context.
+Keep your explanation concise but informative, highlighting the root cause and the fix."""
 
-    prompt = f"Have we seen this bug before: {req.query}\n\nContext from past bugs:\n{context_text}"
+    prompt = f"Summarize the solution for this bug: {req.query}\n\nContext:\n{context_text}"
     
     try:
         answer = await asyncio.wait_for(
-            call_groq(system_prompt, prompt),
+            call_gemini(system_prompt, prompt),
             timeout=20.0
         )
         return {"success": True, "answer": answer}

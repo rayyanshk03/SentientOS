@@ -79,6 +79,45 @@ const ConfigurationIcon = ({ size = 18, ...props }) => (
   </svg>
 );
 
+const DemoIcon = ({ size = 18, ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <polygon points="5 3 19 12 5 21 5 3" />
+  </svg>
+);
+
+const ArchitectureIcon = ({ size = 18, ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <polygon points="12 2 2 7 12 12 22 7 12 2" />
+    <polyline points="2 17 12 22 22 17" />
+    <polyline points="2 12 12 17 22 12" />
+  </svg>
+);
+
+const BugIcon = ({ size = 18, ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M12 22v-5M12 7V2" />
+    <path d="m20 18-3-3M4 6l3 3M20 6l-3 3M4 18l3-3" />
+    <rect x="7" y="7" width="10" height="10" rx="2" />
+  </svg>
+);
+
+const KnowledgeIcon = ({ size = 18, ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+  </svg>
+);
+
+const StandupIcon = ({ size = 18, ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M17 8h1a4 4 0 1 1 0 8h-1" />
+    <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
+    <line x1="6" y1="2" x2="6" y2="4" />
+    <line x1="10" y1="2" x2="10" y2="4" />
+    <line x1="14" y1="2" x2="14" y2="4" />
+  </svg>
+);
+
 export default function Sidebar({
   open,
   className = '',
@@ -117,16 +156,16 @@ export default function Sidebar({
       items: [
         { id: 'chat', label: 'Assistant Chat', path: '/app', icon: <ChatIcon />, end: true },
         { id: 'pipeline', label: 'Ingestion Pipeline', path: '/app/pipeline', icon: <PipelineIcon /> },
-        { id: 'demo', label: 'Judge Demo Mode', path: '/app/demo', icon: <span style={{fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18}}>🏆</span> },
+        { id: 'demo', label: 'DEMO PAGE', path: '/app/demo', icon: <DemoIcon /> },
       ]
     },
     {
       title: 'Memory Vault',
       items: [
         { id: 'vault', label: 'Memory Directory', path: '/app/vault', icon: <BrainIcon size={18} /> },
-        { id: 'adr', label: 'Architecture Records', path: '/app/adr', icon: <span style={{fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18}}>🏛️</span> },
-        { id: 'bugs', label: 'Bug Fixes', path: '/app/bugs', icon: <span style={{fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18}}>🐛</span> },
-        { id: 'knowledge', label: 'Engineering Knowledge', path: '/app/knowledge', icon: <span style={{fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18}}>📚</span> },
+        { id: 'adr', label: 'Architecture Records', path: '/app/adr', icon: <ArchitectureIcon /> },
+        { id: 'bugs', label: 'Bug Fixes', path: '/app/bugs', icon: <BugIcon /> },
+        { id: 'knowledge', label: 'Engineering Knowledge', path: '/app/knowledge', icon: <KnowledgeIcon /> },
         { id: 'documents', label: 'Documents Library', path: '/app/documents', icon: <DocumentsIcon /> },
       ]
     },
@@ -135,7 +174,7 @@ export default function Sidebar({
       items: [
         { id: 'metrics', label: 'System Metrics', path: '/app/metrics', icon: <MetricsIcon /> },
         { id: 'history', label: 'Chat History', path: '/app/history', icon: <HistoryIcon /> },
-        { id: 'standup', label: 'Daily Standup', path: '/app/standup', icon: <span style={{fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18}}>🌅</span> },
+        { id: 'standup', label: 'Daily Standup', path: '/app/standup', icon: <StandupIcon /> },
         { id: 'llm-settings', label: 'AI Settings', path: '/app/llm-settings', icon: <LLMSettingsIcon /> },
       ]
     }
@@ -149,8 +188,8 @@ export default function Sidebar({
         flexDirection: 'column',
         width: isCollapsed ? '56px' : '260px',
         height: '100%',
-        background: 'var(--white)',
-        borderRight: '1.5px solid var(--border)',
+        background: 'var(--sidebar-bg)',
+        borderRight: '1px solid var(--border)',
         transition: 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         overflow: 'hidden',
         userSelect: 'none',
@@ -175,7 +214,7 @@ export default function Sidebar({
               <BrainIcon size={14} />
             </div>
             <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--black)', letterSpacing: '-0.2px' }}>
-              Eternal Architect
+              SentientOS
             </span>
           </div>
         ) : (

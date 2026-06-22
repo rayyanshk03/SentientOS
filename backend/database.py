@@ -32,6 +32,7 @@ def connect_to_mongo():
         collections["uploads"] = db.get_collection("uploads")
         collections["users"] = db.get_collection("users")
         collections["deleted_memories"] = db.get_collection("deleted_memories")
+        collections["memories"] = db.get_collection("memories")
 
         print("[MongoDB] ✅ Connected to MongoDB Atlas (sentient_os)")
         return collections

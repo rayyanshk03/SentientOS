@@ -84,8 +84,8 @@ export default function KnowledgePage() {
   };
 
   return (
-    <div style={{ ...panelBase, flex: 1, overflowY: 'auto', padding: '32px 40px' }}>
-      <div style={{ maxWidth: 800, margin: '0 auto' }}>
+    <div style={{ ...panelBase, flex: 1, overflowY: 'auto', padding: '40px 48px', background: '#F5F5F7' }}>
+      <div style={{ maxWidth: 840, margin: '0 auto' }}>
         
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
@@ -104,14 +104,14 @@ export default function KnowledgePage() {
 
         {/* Global AI Search */}
         <div style={{ 
-          background: 'linear-gradient(145deg, #1d1d1f 0%, #2d2d2f 100%)', 
-          borderRadius: 16, padding: '32px', marginBottom: 32, boxShadow: 'var(--shadow-md)',
+          background: 'linear-gradient(145deg, #1d1d1f 0%, #151516 100%)', 
+          borderRadius: 24, padding: '40px', marginBottom: 48, boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
           color: 'white'
         }}>
-          <h3 style={{ margin: '0 0 16px', fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span>🧠</span> Ask the Collective Brain
+          <h3 style={{ margin: '0 0 12px', fontSize: 22, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 12, letterSpacing: '-0.5px' }}>
+            <span style={{ fontSize: 24 }}>🧠</span> Ask the Collective Brain
           </h3>
-          <p style={{ margin: '0 0 24px', fontSize: 14, color: '#A1A1A6' }}>
+          <p style={{ margin: '0 0 28px', fontSize: 15, color: '#A1A1A6' }}>
             Searches across all logged Bugs, ADRs, and Standards.
           </p>
           <form onSubmit={handleSearch} style={{ display: 'flex', gap: 12 }}>
@@ -121,8 +121,8 @@ export default function KnowledgePage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
-                flex: 1, padding: '14px 20px', border: '1px solid rgba(255,255,255,0.1)', 
-                borderRadius: 'var(--radius-input)', background: 'rgba(255,255,255,0.05)',
+                flex: 1, padding: '16px 24px', border: '1px solid rgba(255,255,255,0.1)', 
+                borderRadius: 12, background: 'rgba(255,255,255,0.05)',
                 fontFamily: 'inherit', fontSize: 16, outline: 'none', color: 'white',
                 boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.1)'
               }}
@@ -131,7 +131,7 @@ export default function KnowledgePage() {
               variant="primary" 
               onClick={handleSearch} 
               disabled={isSearching || !searchQuery.trim()}
-              style={{ padding: '0 24px', background: 'var(--blue)', border: 'none', fontWeight: 600 }}
+              style={{ padding: '0 32px', background: '#007aff', borderRadius: 12, border: 'none', fontWeight: 600, fontSize: 16 }}
             >
               {isSearching ? 'Synthesizing...' : 'Search'}
             </Button>
@@ -140,17 +140,17 @@ export default function KnowledgePage() {
           {/* Search Results Area */}
           {(isSearching || searchResult) && (
             <div style={{
-              marginTop: 24, padding: 24, background: 'rgba(0,0,0,0.2)', borderRadius: 12,
-              borderLeft: '4px solid var(--blue)'
+              marginTop: 32, padding: 24, background: 'rgba(0, 122, 255, 0.1)', borderRadius: 16,
+              borderLeft: '4px solid #007aff'
             }}>
               {isSearching ? (
-                <div style={{ color: '#A1A1A6', fontSize: 15, display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ color: '#E5E5EA', fontSize: 15, display: 'flex', alignItems: 'center', gap: 12 }}>
                   <span style={{ animation: 'spin 1s linear infinite' }}>⏳</span> Traversing Vector Space...
                 </div>
               ) : (
                 <>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--blue)', textTransform: 'uppercase', marginBottom: 12, letterSpacing: '0.5px' }}>
-                    AI Synthesis
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#4da3ff', textTransform: 'uppercase', marginBottom: 12, letterSpacing: '0.5px' }}>
+                    ✨ AI Synthesis
                   </div>
                   <div style={{ fontSize: 15, lineHeight: 1.6, color: 'white' }}>
                     <ReactMarkdown>{searchResult}</ReactMarkdown>
@@ -162,18 +162,18 @@ export default function KnowledgePage() {
         </div>
 
         {/* List View */}
-        <h3 style={{ margin: '0 0 20px', fontSize: 18, color: 'var(--black)' }}>Documented Standards</h3>
+        <h3 style={{ margin: '0 0 24px', fontSize: 22, fontWeight: 700, color: '#1d1d1f', letterSpacing: '-0.5px' }}>Documented Standards</h3>
         
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--gray-mid)' }}>Loading Knowledge Base...</div>
+          <div style={{ textAlign: 'center', padding: '40px', color: '#86868b' }}>Loading Knowledge Base...</div>
         ) : knowledgeList.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px', background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: 12 }}>
-            <span style={{ fontSize: 32 }}>📚</span>
-            <h3 style={{ margin: '16px 0 8px', color: 'var(--black)' }}>No standards documented yet</h3>
-            <p style={{ margin: 0, color: 'var(--gray-mid)' }}>Start building the team's knowledge base.</p>
+          <div style={{ textAlign: 'center', padding: '60px', background: 'var(--white)', border: 'none', borderRadius: 20, boxShadow: '0 8px 30px rgba(0,0,0,0.04)' }}>
+            <span style={{ fontSize: 40 }}>📚</span>
+            <h3 style={{ margin: '20px 0 8px', color: '#1d1d1f', fontSize: 20, fontWeight: 600 }}>No standards documented yet</h3>
+            <p style={{ margin: 0, color: '#86868b' }}>Start building the team's knowledge base.</p>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: 20 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: 24 }}>
             {knowledgeList.map(item => {
               const dateObj = new Date(item.timestamp);
               const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -185,26 +185,28 @@ export default function KnowledgePage() {
 
               return (
                 <div key={item.id} style={{
-                  background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: 12,
-                  padding: 24, boxShadow: 'var(--shadow-sm)'
+                  background: 'var(--white)', border: 'none', borderRadius: 20,
+                  padding: 32, boxShadow: '0 8px 30px rgba(0,0,0,0.04)',
+                  transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+                  display: 'flex', flexDirection: 'column'
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-                    <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--gray-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
+                    <div style={{ width: 48, height: 48, borderRadius: 14, background: '#F5F5F7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>
                       {icon}
                     </div>
                     <div>
-                      <h3 style={{ margin: 0, fontSize: 16, color: 'var(--black)' }}>{item.title}</h3>
-                      <span style={{ fontSize: 13, color: 'var(--gray-dark)', fontWeight: 500 }}>{item.category}</span>
+                      <h3 style={{ margin: 0, fontSize: 18, color: '#1d1d1f', fontWeight: 600, letterSpacing: '-0.3px' }}>{item.title}</h3>
+                      <span style={{ fontSize: 13, color: '#86868b', fontWeight: 500 }}>{item.category}</span>
                     </div>
                   </div>
                   
-                  <p style={{ margin: '0 0 20px', fontSize: 14, lineHeight: 1.5, color: 'var(--gray-dark)' }}>
+                  <p style={{ margin: '0 0 24px', fontSize: 15, lineHeight: 1.6, color: '#515154', flex: 1 }}>
                     {item.description}
                   </p>
                   
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, color: 'var(--gray-mid)', borderTop: '1px solid var(--border)', paddingTop: 16 }}>
-                    <span>👤 {item.author}</span>
-                    <span>📅 {dateStr}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, color: '#86868b', fontWeight: 500, borderTop: '1px solid #E5E5EA', paddingTop: 20 }}>
+                    <span style={{ background: '#F5F5F7', padding: '4px 10px', borderRadius: 12 }}>👤 {item.author}</span>
+                    <span style={{ background: '#F5F5F7', padding: '4px 10px', borderRadius: 12 }}>📅 {dateStr}</span>
                   </div>
                 </div>
               );

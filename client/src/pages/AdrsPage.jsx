@@ -14,7 +14,7 @@ export default function AdrsPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [formData, setFormData] = useState({
-    decisionName: '', problem: '', solution: '', reasoning: '', alternatives: '', author: ''
+    decisionName: '', problem: '', solution: '', reasoning: '', alternatives: ''
   });
 
   // Explain State
@@ -50,7 +50,7 @@ export default function AdrsPage() {
       const data = await res.json();
       if (data.success) {
         setIsCreateOpen(false);
-        setFormData({ decisionName: '', problem: '', solution: '', reasoning: '', alternatives: '', author: '' });
+        setFormData({ decisionName: '', problem: '', solution: '', reasoning: '', alternatives: '' });
         fetchAdrs();
       }
     } catch (e) {
@@ -80,8 +80,8 @@ export default function AdrsPage() {
   };
 
   return (
-    <div style={{ ...panelBase, flex: 1, overflowY: 'auto', padding: '32px 40px' }}>
-      <div style={{ maxWidth: 800, margin: '0 auto' }}>
+    <div style={{ ...panelBase, flex: 1, overflowY: 'auto', padding: '40px 48px', background: '#F5F5F7' }}>
+      <div style={{ maxWidth: 840, margin: '0 auto' }}>
         
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
@@ -108,9 +108,9 @@ export default function AdrsPage() {
             <p style={{ margin: 0, color: 'var(--gray-mid)' }}>Document your first architecture decision to build project memory.</p>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24, position: 'relative' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 32, position: 'relative' }}>
             {/* Vertical timeline line */}
-            <div style={{ position: 'absolute', left: 15, top: 20, bottom: 20, width: 2, background: 'var(--border)' }} />
+            <div style={{ position: 'absolute', left: 19, top: 20, bottom: 20, width: 2, background: '#E5E5EA', zIndex: 1 }} />
             
             {adrs.map(adr => {
               const dateObj = new Date(adr.timestamp);
@@ -119,51 +119,54 @@ export default function AdrsPage() {
               const explanation = explanations[adr.id];
 
               return (
-                <div key={adr.id} style={{ display: 'flex', gap: 20, position: 'relative' }}>
+                <div key={adr.id} style={{ display: 'flex', gap: 24, position: 'relative' }}>
                   {/* Timeline Dot */}
                   <div style={{
-                    width: 32, height: 32, borderRadius: '50%', background: 'var(--blue)', color: 'white',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0,
-                    boxShadow: '0 0 0 4px var(--bg)'
+                    width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #007aff 0%, #0051a8 100%)', color: 'white',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0,
+                    boxShadow: '0 4px 12px rgba(0, 122, 255, 0.3), 0 0 0 6px #F5F5F7', zIndex: 2
                   }}>
                     🏗️
                   </div>
 
                   {/* ADR Card */}
                   <div style={{
-                    background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: 12,
-                    padding: 24, flex: 1, boxShadow: 'var(--shadow-sm)'
+                    background: 'var(--white)', border: 'none', borderRadius: 20,
+                    padding: 32, flex: 1, boxShadow: '0 8px 30px rgba(0,0,0,0.04)',
+                    transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+                    position: 'relative', zIndex: 2
                   }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                      <div>
-                        <h3 style={{ margin: '0 0 4px', fontSize: 18, color: 'var(--black)' }}>{adr.title}</h3>
-                        <div style={{ display: 'flex', gap: 12, fontSize: 13, color: 'var(--gray-mid)' }}>
-                          <span>📅 {dateStr}</span>
-                          <span>👤 {adr.author}</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16, flexWrap: 'wrap', gap: 16 }}>
+                      <div style={{ flex: '1 1 min-content' }}>
+                        <h3 style={{ margin: '0 0 10px', fontSize: 20, fontWeight: 700, color: '#1d1d1f', letterSpacing: '-0.5px' }}>{adr.title}</h3>
+                        <div style={{ display: 'flex', gap: 8, fontSize: 13, color: '#86868b', fontWeight: 500, flexWrap: 'wrap' }}>
+                          <span style={{ background: '#F5F5F7', padding: '4px 10px', borderRadius: 12, whiteSpace: 'nowrap' }}>📅 {dateStr}</span>
                         </div>
                       </div>
                       
                       {!explanation && (
-                        <Button variant="ghost" onClick={() => handleExplain(adr)} disabled={isExplaining}>
-                          {isExplaining ? 'Thinking...' : '✨ Explain Why'}
-                        </Button>
+                        <div style={{ flexShrink: 0 }}>
+                          <Button variant="ghost" onClick={() => handleExplain(adr)} disabled={isExplaining}>
+                            {isExplaining ? 'Thinking...' : '✨ Explain Why'}
+                          </Button>
+                        </div>
                       )}
                     </div>
 
-                    <p style={{ margin: '0 0 16px', fontSize: 15, lineHeight: 1.5, color: 'var(--gray-dark)' }}>
+                    <p style={{ margin: '0 0 16px', fontSize: 15, lineHeight: 1.6, color: '#515154' }}>
                       {adr.description}
                     </p>
 
                     {/* AI Explanation Area */}
                     {explanation && (
                       <div style={{
-                        marginTop: 16, padding: 16, background: '#F8F9FA', borderRadius: 8,
-                        borderLeft: '4px solid var(--blue)'
+                        marginTop: 20, padding: 20, background: 'rgba(0, 113, 227, 0.04)', borderRadius: 16,
+                        borderLeft: '4px solid #0071E3'
                       }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--blue)', textTransform: 'uppercase', marginBottom: 8, letterSpacing: '0.5px' }}>
-                          AI Explanation
+                        <div style={{ fontSize: 12, fontWeight: 700, color: '#0071E3', textTransform: 'uppercase', marginBottom: 10, letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                          ✨ AI Explanation
                         </div>
-                        <div style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--black)' }}>
+                        <div style={{ fontSize: 14.5, lineHeight: 1.6, color: '#1d1d1f' }}>
                           <ReactMarkdown>{explanation}</ReactMarkdown>
                         </div>
                       </div>
@@ -184,12 +187,6 @@ export default function AdrsPage() {
             placeholder="e.g. Use PostgreSQL for Main Database" 
             value={formData.decisionName}
             onChange={e => setFormData({ ...formData, decisionName: e.target.value })}
-          />
-          <Input 
-            label="Author" 
-            placeholder="Your name" 
-            value={formData.author}
-            onChange={e => setFormData({ ...formData, author: e.target.value })}
           />
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>

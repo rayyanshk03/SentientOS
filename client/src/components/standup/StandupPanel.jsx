@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 
-export default function StandupPanel({ open, onClose }) {
+export default function StandupPanel({ open, onClose, messages = [] }) {
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState(null);
   const [history, setHistory] = useState([]);
@@ -36,7 +36,11 @@ export default function StandupPanel({ open, onClose }) {
     setLoading(true);
     setSummary(null);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/standup/today`);
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/standup/today`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages })
+      });
       const data = await res.json();
       
       if (data.summary) {

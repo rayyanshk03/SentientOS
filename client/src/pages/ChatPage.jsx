@@ -19,6 +19,8 @@ export default function ChatPage() {
     autoSave,
     toggleAutoSave,
     extractMemory,
+    chatTag,
+    setChatTag,
   } = useOutletContext();
 
   return (
@@ -57,6 +59,8 @@ export default function ChatPage() {
           personas={PERSONAS}
           activeProject={activeProject}
           onUploadSuccess={refreshMemories}
+          chatTag={chatTag}
+          setChatTag={setChatTag}
         />
       </div>
     </>

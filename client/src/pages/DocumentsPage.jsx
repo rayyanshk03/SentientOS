@@ -46,32 +46,31 @@ export default function DocumentsPage() {
       style={{
         gridColumn: 2,
         gridRow: '2 / 4',
-        padding: '24px 32px',
+        padding: '40px 48px',
         overflowY: 'auto',
-        background: 'var(--gray-light)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 24,
+        background: '#F5F5F7',
       }}
     >
-      {/* Header */}
-      <div>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--black)', margin: '0 0 4px 0' }}>Documents Library</h1>
-        <p style={{ fontSize: 13, color: 'var(--gray-mid)', margin: 0 }}>Upload and manage text assets indexed into the agent memory</p>
-      </div>
+      <div style={{ maxWidth: 840, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 32, width: '100%' }}>
+      
+        {/* Header */}
+        <div>
+          <h1 style={{ fontSize: 28, fontWeight: 700, color: '#1d1d1f', margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>Documents Library</h1>
+          <p style={{ fontSize: 15, color: '#86868b', margin: 0 }}>Upload and manage text assets indexed into the agent memory</p>
+        </div>
 
-      {/* Grid: Document upload on left, table list on right */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: 24, alignItems: 'start' }}>
+        {/* Stacked Layout: Upload on top, table on bottom */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
         
         {/* Upload card */}
-        <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 12, padding: 20 }}>
-          <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--black)', marginBottom: 12 }}>Upload New Documents</h2>
+        <div style={{ background: 'var(--white)', border: 'none', borderRadius: 20, padding: 32, boxShadow: '0 8px 30px rgba(0,0,0,0.04)' }}>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: '#1d1d1f', marginBottom: 20, letterSpacing: '-0.5px' }}>Upload New Documents</h2>
           <UploadZone activeProject={activeProject} onUploadSuccess={handleUploadSuccess} />
         </div>
 
         {/* Database List */}
-        <div style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 12, padding: 20 }}>
-          <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--black)', marginBottom: 16 }}>Indexed Documents Cache</h2>
+        <div style={{ background: 'var(--white)', border: 'none', borderRadius: 20, padding: 32, boxShadow: '0 8px 30px rgba(0,0,0,0.04)' }}>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: '#1d1d1f', marginBottom: 20, letterSpacing: '-0.5px' }}>Indexed Documents Cache</h2>
           
           {isLoading ? (
             <TableSkeleton rows={4} />
@@ -109,26 +108,26 @@ export default function DocumentsPage() {
             </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 13 }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 14 }}>
                 <thead>
-                  <tr style={{ borderBottom: '1.5px solid var(--border)', color: 'var(--gray-mid)' }}>
-                    <th style={{ padding: '8px 4px', fontWeight: 600 }}>File Name</th>
-                    <th style={{ padding: '8px 4px', fontWeight: 600 }}>Size</th>
-                    <th style={{ padding: '8px 4px', fontWeight: 600 }}>Chunks</th>
-                    <th style={{ padding: '8px 4px', fontWeight: 600 }}>Date</th>
-                    <th style={{ padding: '8px 4px', fontWeight: 600 }}>Status</th>
+                  <tr style={{ borderBottom: '1px solid #E5E5EA', color: '#86868b', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    <th style={{ padding: '12px 4px', fontWeight: 600 }}>File Name</th>
+                    <th style={{ padding: '12px 4px', fontWeight: 600 }}>Size</th>
+                    <th style={{ padding: '12px 4px', fontWeight: 600 }}>Chunks</th>
+                    <th style={{ padding: '12px 4px', fontWeight: 600 }}>Date</th>
+                    <th style={{ padding: '12px 4px', fontWeight: 600 }}>Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {uploads.map(doc => (
-                    <tr key={doc.id} style={{ borderBottom: '1px solid var(--border)', color: 'var(--black)' }}>
-                      <td style={{ padding: '12px 4px', fontWeight: 500, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={doc.name}>
-                        📄 {doc.name}
+                    <tr key={doc.id} style={{ borderBottom: '1px solid #E5E5EA', color: '#1d1d1f', transition: 'background 0.2s' }}>
+                      <td style={{ padding: '16px 4px', fontWeight: 600, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={doc.name}>
+                        <span style={{ marginRight: 8, fontSize: 16 }}>📄</span> {doc.name}
                       </td>
-                      <td style={{ padding: '12px 4px', color: 'var(--gray-mid)' }}>{doc.size}</td>
-                      <td style={{ padding: '12px 4px', fontWeight: 600, color: 'var(--blue)' }}>{doc.chunks}</td>
-                      <td style={{ padding: '12px 4px', color: 'var(--gray-mid)' }}>{doc.date}</td>
-                      <td style={{ padding: '12px 4px' }}>
+                      <td style={{ padding: '16px 4px', color: '#515154' }}>{doc.size}</td>
+                      <td style={{ padding: '16px 4px', fontWeight: 700, color: '#007aff' }}>{doc.chunks}</td>
+                      <td style={{ padding: '16px 4px', color: '#86868b', fontSize: 13 }}>{doc.date}</td>
+                      <td style={{ padding: '16px 4px' }}>
                         <Badge color="green">{doc.status}</Badge>
                       </td>
                     </tr>
@@ -139,6 +138,7 @@ export default function DocumentsPage() {
           )}
         </div>
 
+      </div>
       </div>
     </div>
   );

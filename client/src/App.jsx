@@ -146,7 +146,7 @@ function OnboardingModal({ onComplete }) {
   const steps = [
     {
       emoji: '🧠',
-      title: 'Welcome to Eternal Architect',
+      title: 'Welcome to SentientOS',
       body: 'Your AI-powered system orchestrator that remembers every architectural decision you make — forever.',
     },
     {
@@ -289,7 +289,7 @@ export default function App() {
   });
   const [messages, setMessages]         = useState([{
     id: 'welcome', role: 'agent',
-    content: "Hello! I'm the Eternal Architect — your AI system orchestrator. I can answer questions, make architecture decisions, and save every decision to memory. What would you like to work on?",
+    content: "Hello! I'm SentientOS — your AI system orchestrator. I can answer questions, make architecture decisions, and save every decision to memory. What would you like to work on?",
   }]);
   const [isLoading, setIsLoading]       = useState(false);
   const [streamSteps, setStreamSteps]   = useState([]);
@@ -358,6 +358,7 @@ export default function App() {
 
   /* ── Auto-Save Toggle + Memory Preview ── */
   const [autoSave, setAutoSave] = useState(() => localStorage.getItem('autoSave') !== 'false');
+  const [chatTag, setChatTag] = useState('Auto');
   const [memoryPreview, setMemoryPreview] = useState(null);   // { extraction, userMessage, agentResponse }
   const [isSavingPreview, setIsSavingPreview] = useState(false);
   const lastMessageRef = useRef({ user: '', agent: '' });
@@ -403,7 +404,7 @@ export default function App() {
   /* ─────────────────────────────────────────────────────────────────────────
      extractMemory — calls /api/memory/extract with the last conversation turn
   ───────────────────────────────────────────────────────────────────────── */
-  const extractMemory = useCallback(async (userMsg, agentMsg, shouldAutoSave) => {
+  const extractMemory = useCallback(async (userMsg, agentMsg, shouldAutoSave, customTag = 'Auto') => {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/memory/extract`, {
         method: 'POST',
@@ -413,6 +414,7 @@ export default function App() {
           agentResponse: agentMsg,
           projectId: activeProject,
           autoSave: shouldAutoSave,
+          customTag: customTag,
         }),
       });
       const data = await res.json();
@@ -576,8 +578,9 @@ export default function App() {
 
       // ── Trigger intelligent memory extraction (non-blocking) ──
       const currentAutoSave = autoSave;
+      const currentChatTag = chatTag;
       setTimeout(() => {
-        extractMemory(task, agentContent, currentAutoSave);
+        extractMemory(task, agentContent, currentAutoSave, currentChatTag);
       }, 800); // slight delay so UI settles first
     });
 
@@ -618,7 +621,7 @@ export default function App() {
         setStreamSteps([]);
       }
     }, 120000);
-  }, [isLoading, activePersonaId, refreshMemories, fetchStats, addToast, sessionId]);
+  }, [isLoading, activePersonaId, refreshMemories, fetchStats, addToast, sessionId, chatTag, autoSave]);
 
   /* ─────────────────────────────────────────────────────────────────────────
      handleSuggestion — from ChatWindow empty-state chips
@@ -702,7 +705,7 @@ export default function App() {
 
     setMessages([{
       id: 'welcome', role: 'agent',
-      content: "Hello! I'm the Eternal Architect — your AI system orchestrator. Let me demonstrate how I remember architectural decisions...",
+      content: "Hello! I'm SentientOS — your AI system orchestrator. Let me demonstrate how I remember architectural decisions...",
     }]);
 
     /* Step 1 */
@@ -925,6 +928,7 @@ export default function App() {
       <StandupPanel
         open={isStandupOpen}
         onClose={() => setIsStandupOpen(false)}
+        messages={messages}
       />
 
       {/* ── Mobile sidebar overlay ───────────────────────────────────────── */}
@@ -1081,6 +1085,8 @@ export default function App() {
         autoSave,
         toggleAutoSave,
         extractMemory,
+        chatTag,
+        setChatTag,
       }} />
 
       {/* ── Memory Preview Modal (auto-save OFF path) ────────────────────── */}
@@ -1191,7 +1197,7 @@ export default function App() {
       {/* ── Hidden print report ───────────────────────────────────────────── */}
       <div id="print-report" style={{ display: 'none' }}>
         <div className="print-header">
-          <h1>Eternal Architect — Decision Log</h1>
+          <h1>SentientOS — Decision Log</h1>
           <p>
             {activeProject}&nbsp;·&nbsp;
             Exported on {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
@@ -1226,7 +1232,7 @@ export default function App() {
         )}
         <div className="print-footer">
           <span>SR Enterprises · Rayyan Shaikh</span>
-          <span>SentientOS — Eternal Architect Decision Log</span>
+          <span>SentientOS Decision Log</span>
           <span>{new Date().toLocaleDateString()}</span>
         </div>
       </div>

@@ -360,7 +360,7 @@ export default function MessageBubble({ msg, onRate, onSave }) {
             width: 32,
             height: 32,
             borderRadius: '50%',
-            background: 'linear-gradient(135deg, #1D1D1F, #3D3D3F)',
+            background: 'linear-gradient(135deg, #1D1D1F 0%, #434345 100%)',
             color: '#FFFFFF',
             display: 'flex',
             alignItems: 'center',
@@ -370,6 +370,7 @@ export default function MessageBubble({ msg, onRate, onSave }) {
             fontWeight: 700,
             flexShrink: 0,
             marginTop: '4px',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
           }}
         >
           EA
@@ -378,7 +379,7 @@ export default function MessageBubble({ msg, onRate, onSave }) {
         {/* Content column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
           <span style={{ fontFamily: 'var(--font)', fontWeight: 600, fontSize: '12px', color: '#6E6E73', marginBottom: '2px' }}>
-            Eternal Architect
+            SentientOS
           </span>
           <div
             style={{
@@ -420,17 +421,17 @@ export default function MessageBubble({ msg, onRate, onSave }) {
       >
         <div
           style={{
-            background: '#0071E3',
+            background: 'linear-gradient(135deg, #0071E3 0%, #0A84FF 100%)',
             color: 'white',
-            borderRadius: '18px 18px 4px 18px',
-            padding: '10px 14px',
+            borderRadius: '20px 20px 6px 20px',
+            padding: '12px 16px',
             maxWidth: '72%',
             fontFamily: 'var(--font)',
             fontSize: '15px',
             lineHeight: 1.5,
             whiteSpace: 'pre-wrap',
             wordBreak: 'break-word',
-            boxShadow: '0 1px 2px rgba(0,113,227,0.3)',
+            boxShadow: '0 4px 14px rgba(0,113,227,0.25)',
           }}
         >
           <div>{msg.content}</div>
@@ -469,7 +470,7 @@ export default function MessageBubble({ msg, onRate, onSave }) {
           width: 32,
           height: 32,
           borderRadius: '50%',
-          background: 'linear-gradient(135deg, #1D1D1F, #3D3D3F)',
+          background: 'linear-gradient(135deg, #1D1D1F 0%, #434345 100%)',
           color: '#FFFFFF',
           display: 'flex',
           alignItems: 'center',
@@ -479,6 +480,7 @@ export default function MessageBubble({ msg, onRate, onSave }) {
           fontWeight: 700,
           flexShrink: 0,
           marginTop: '4px',
+          boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
         }}
       >
         EA
@@ -487,21 +489,22 @@ export default function MessageBubble({ msg, onRate, onSave }) {
       {/* Content column */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
         <span style={{ fontFamily: 'var(--font)', fontWeight: 600, fontSize: '12px', color: '#6E6E73', marginBottom: '2px' }}>
-          Eternal Architect
+          SentientOS
         </span>
         
         {/* Bubble */}
         <div
           style={{
-            background: '#F5F5F7',
+            background: 'var(--white)',
             color: '#1D1D1F',
-            borderRadius: '18px 18px 18px 4px',
-            padding: '12px 16px',
-            maxWidth: '80%',
+            borderRadius: '20px 20px 20px 6px',
+            padding: '14px 18px',
+            maxWidth: '85%',
             fontFamily: 'var(--font)',
             fontSize: '15px',
             lineHeight: 1.6,
-            border: '1px solid #E5E5EA',
+            border: '1px solid rgba(0,0,0,0.04)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
             wordBreak: 'break-word',
           }}
         >

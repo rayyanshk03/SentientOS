@@ -20,14 +20,28 @@ export default function InputBar({
   personas = [],
   activeProject,
   onUploadSuccess,
+  chatTag = 'Auto',
+  setChatTag
 }) {
   const [text, setText] = useState('');
   const [personaMenuOpen, setPersonaMenuOpen] = useState(false);
+  const [tagMenuOpen, setTagMenuOpen] = useState(false);
   const [sendHovered, setSendHovered] = useState(false);
   const [sendPressed, setSendPressed] = useState(false);
   
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  const CATEGORIES = [
+    { id: 'Auto',                  label: 'Auto-Tag',             icon: '🏷️' },
+    { id: 'Architecture Decision', label: 'Architecture Decision',icon: '🏗️' },
+    { id: 'Bug Fix',               label: 'Bug Fix',              icon: '🐛' },
+    { id: 'Coding Standard',       label: 'Coding Standard',      icon: '📐' },
+    { id: 'Deployment History',    label: 'Deployment History',   icon: '🚀' },
+    { id: 'Feature Request',       label: 'Feature Request',      icon: '✨' },
+    { id: 'Team Discussion',       label: 'Team Discussion',      icon: '💬' },
+    { id: 'Documentation Update',  label: 'Documentation Update', icon: '📄' },
+  ];
 
   // Upload States
   const [isUploading, setIsUploading] = useState(false);
@@ -242,25 +256,105 @@ export default function InputBar({
           
           {/* LEFT TOOLBAR */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div
-              onClick={() => setPersonaMenuOpen(!personaMenuOpen)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                background: '#F5F5F7',
-                borderRadius: '980px',
-                padding: '4px 10px',
-                fontFamily: 'inherit',
-                fontWeight: 500,
-                fontSize: '12px',
-                color: '#6E6E73',
-                cursor: 'pointer',
-                userSelect: 'none',
-              }}
-            >
-              <span>{activePersona.emoji}</span>
-              <span>{shortName}</span>
+            <div style={{ position: 'relative' }}>
+              <div
+                onClick={() => { setPersonaMenuOpen(!personaMenuOpen); setTagMenuOpen(false); }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  background: '#F5F5F7',
+                  borderRadius: '980px',
+                  padding: '4px 10px',
+                  fontFamily: 'inherit',
+                  fontWeight: 500,
+                  fontSize: '12px',
+                  color: '#6E6E73',
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                }}
+              >
+                <span>{activePersona.emoji}</span>
+                <span>{activePersona.label}</span>
+              </div>
+            </div>
+
+            {/* Tag Selector */}
+            <div style={{ position: 'relative' }}>
+              <div
+                onClick={() => { setTagMenuOpen(!tagMenuOpen); setPersonaMenuOpen(false); }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  background: chatTag === 'Auto' ? 'transparent' : 'rgba(0, 113, 227, 0.08)',
+                  border: chatTag === 'Auto' ? '1px dashed #D1D1D6' : '1px solid transparent',
+                  borderRadius: '980px',
+                  padding: '3px 10px',
+                  fontFamily: 'inherit',
+                  fontWeight: 500,
+                  fontSize: '12px',
+                  color: chatTag === 'Auto' ? '#8E8E93' : '#0071E3',
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                }}
+                title="Force memory to be saved with this tag"
+              >
+                <span>{CATEGORIES.find(c => c.id === chatTag)?.icon || '🏷️'}</span>
+                <span>{CATEGORIES.find(c => c.id === chatTag)?.label || 'Auto-Tag'}</span>
+              </div>
+
+              {/* Tag Switcher Popover */}
+              {tagMenuOpen && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: '100%',
+                    left: 0,
+                    marginBottom: 8,
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(0, 0, 0, 0.08)',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                    padding: '4px',
+                    zIndex: 100,
+                    minWidth: 180,
+                  }}
+                >
+                  {CATEGORIES.map(c => (
+                    <button
+                      key={c.id}
+                      onClick={() => {
+                        setChatTag?.(c.id);
+                        setTagMenuOpen(false);
+                      }}
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        padding: '8px 10px',
+                        border: 'none',
+                        background: c.id === chatTag ? 'var(--blue-light)' : 'transparent',
+                        color: c.id === chatTag ? 'var(--blue)' : 'var(--black)',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        fontFamily: 'inherit',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                      }}
+                      onMouseEnter={e => { if (c.id !== chatTag) e.currentTarget.style.background = 'var(--gray-light)'; }}
+                      onMouseLeave={e => { if (c.id !== chatTag) e.currentTarget.style.background = 'transparent'; }}
+                    >
+                      <span>{c.icon}</span>
+                      <span>{c.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Paperclip Button */}
@@ -340,19 +434,20 @@ export default function InputBar({
               onClick={handleSubmit}
               disabled={isSendDisabled}
               style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '10px',
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
                 border: 'none',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: isSendDisabled ? '#AEAEB2' : (sendHovered ? '#0077ED' : '#0071E3'),
+                background: isSendDisabled ? '#AEAEB2' : (sendHovered ? '#0A84FF' : '#0071E3'),
                 color: '#FFFFFF',
                 cursor: isSendDisabled ? 'not-allowed' : 'pointer',
-                transform: sendPressed && !isSendDisabled ? 'scale(0.95)' : (sendHovered && !isSendDisabled ? 'scale(1.05)' : 'scale(1)'),
-                transition: 'all 0.15s ease',
+                transform: sendPressed && !isSendDisabled ? 'scale(0.92)' : (sendHovered && !isSendDisabled ? 'scale(1.05)' : 'scale(1)'),
+                transition: 'all 0.15s cubic-bezier(0.25, 0.8, 0.25, 1)',
                 outline: 'none',
+                boxShadow: isSendDisabled ? 'none' : '0 4px 12px rgba(0,113,227,0.25)',
               }}
             >
               {disabled ? (

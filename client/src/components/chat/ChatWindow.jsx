@@ -123,18 +123,22 @@ export default function ChatWindow({
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', flex: 1, minWidth: 0, position: 'relative' }}>
       {/* CHAT HEADER */}
       <div style={{
-        padding: '14px 20px',
-        borderBottom: '1px solid var(--border)',
+        padding: '16px 24px',
+        borderBottom: '1px solid rgba(0,0,0,0.05)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        flexShrink: 0, background: 'var(--white)'
+        flexShrink: 0, 
+        background: 'rgba(255, 255, 255, 0.8)',
+        backdropFilter: 'blur(24px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+        position: 'sticky', top: 0, zIndex: 50,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{
-            width: 40, height: 40, borderRadius: 'var(--radius-md)',
-            background: 'linear-gradient(135deg, var(--blue) 0%, #34aadc 100%)',
+            width: 44, height: 44, borderRadius: '12px',
+            background: 'linear-gradient(135deg, #0071E3 0%, #409CFF 100%)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 3px 10px rgba(0,113,227,0.35)',
-            fontSize: 20
+            boxShadow: '0 4px 12px rgba(0,113,227,0.25)',
+            fontSize: 22
           }}>
             {activePersona?.emoji}
           </div>
@@ -232,7 +236,7 @@ export default function ChatWindow({
         style={{
           flex: 1, overflowY: 'auto', padding: '24px 20px',
           display: 'flex', flexDirection: 'column', gap: 16,
-          background: 'var(--gray-light)',
+          background: 'var(--chat-bg)',
           position: 'relative'
         }}
       >
@@ -267,12 +271,12 @@ export default function ChatWindow({
 
             {/* Headline */}
             <h2 style={{
-              fontSize: 24,
+              fontSize: 28,
               fontWeight: 700,
               color: 'var(--black)',
-              margin: '0 0 8px 0',
+              margin: '0 0 10px 0',
               lineHeight: 1.2,
-              letterSpacing: '-0.4px',
+              letterSpacing: '-0.6px',
             }}>
               What are we building today?
             </h2>
@@ -282,8 +286,9 @@ export default function ChatWindow({
               fontSize: 16,
               fontWeight: 400,
               color: 'var(--gray-mid)',
-              margin: '0 0 16px 0',
+              margin: '0 0 24px 0',
               lineHeight: 1.5,
+              maxWidth: 400,
             }}>
               {identity?.name 
                 ? `${identity.name}, I remember everything from our last session.` 
@@ -296,30 +301,31 @@ export default function ChatWindow({
                 className="last-session-card"
                 onClick={() => onSuggestionClick?.("Review the architecture")}
                 style={{
-                  background: 'var(--card-bg)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 10,
-                  padding: '10px 16px',
+                  background: 'var(--white)',
+                  border: '1px solid rgba(0,0,0,0.04)',
+                  boxShadow: '0 4px 14px rgba(0,0,0,0.03)',
+                  borderRadius: 16,
+                  padding: '12px 18px',
                   fontSize: 14,
-                  fontWeight: 400,
-                  color: 'var(--gray-mid)',
+                  fontWeight: 500,
+                  color: 'var(--gray-dark)',
                   marginTop: 0,
                   cursor: 'pointer',
-                  transition: 'var(--transition)',
+                  transition: 'all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1)',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 8,
+                  gap: 10,
                 }}
                 onMouseEnter={e => {
                   e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.06)';
                 }}
                 onMouseLeave={e => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.boxShadow = '0 4px 14px rgba(0,0,0,0.03)';
                 }}
               >
-                <span>📋</span>
+                <span style={{ fontSize: 16 }}>📋</span>
                 <span>Last session: {identity.lastSessionTitle || "Continued architecture work"}</span>
               </div>
             )}

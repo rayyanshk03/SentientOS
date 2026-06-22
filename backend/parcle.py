@@ -132,7 +132,7 @@ async def query_memory(natural_language_query: str):
         )
 
         def do_query():
-            with urllib.request.urlopen(req, timeout=10) as resp:
+            with urllib.request.urlopen(req, timeout=20) as resp:
                 body = resp.read().decode("utf-8")
             return body
 
@@ -179,7 +179,7 @@ async def query_memory(natural_language_query: str):
         return results[:5]
     except Exception as e:
         print(f"[Parcle] ❌ queryMemory failed: {e}")
-        return []
+        raise
 
 async def list_recent_memories(limit: int = 10):
     print(f"[Parcle] 📋 listRecentMemories → limit={limit}")

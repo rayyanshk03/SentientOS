@@ -13,6 +13,7 @@ class ExtractRequest(BaseModel):
     agentResponse: str
     projectId: Optional[str] = "default-project"
     autoSave: Optional[bool] = False
+    customTag: Optional[str] = None
 
 # ─── All 7 memory categories ────────────────────────────────────────────────
 CATEGORIES = [
@@ -64,15 +65,22 @@ async def get_memory_history(limit: int = 50):
     raw = await list_recent_memories(limit)
     
     deleted_ids = set()
+    content_map = {}
     cols = get_collections()
     if cols and cols.get("deleted_memories") is not None:
         deleted_docs = cols["deleted_memories"].find({}, {"memoryId": 1})
         deleted_ids = {doc["memoryId"] for doc in deleted_docs}
         
+    if cols and cols.get("memories") is not None:
+        mem_docs = cols["memories"].find({"memoryId": {"$in": [m.get("id") for m in raw]}}, {"memoryId": 1, "content": 1})
+        for doc in mem_docs:
+            content_map[doc["memoryId"]] = doc.get("content", "")
+            
     enriched = []
     for i, m in enumerate(raw):
         mem = _enrich_memory(m, i)
         if mem["id"] not in deleted_ids:
+            mem["content"] = content_map.get(mem["id"], mem.get("description", ""))
             enriched.append(mem)
             
     return {"memories": enriched, "total": len(enriched)}
@@ -98,6 +106,15 @@ async def save_memory_endpoint(req: MemoryRequest):
 
     if not session_id:
         return {"error": "Failed to save memory to Parcle"}
+
+    from database import get_collections
+    cols = get_collections()
+    if cols and cols.get("memories") is not None:
+        cols["memories"].update_one(
+            {"memoryId": session_id},
+            {"$set": {"memoryId": session_id, "content": req.content, "updatedAt": datetime.utcnow()}},
+            upsert=True
+        )
 
     return {
         "success":    True,
@@ -199,6 +216,14 @@ async def delete_memory(memory_id: str):
 # ── PUT /api/memories/{memory_id} ───────────────────────────────────────────
 @router.put("/memories/{memory_id}")
 async def update_memory(memory_id: str, req: MemoryRequest):
+    from database import get_collections
+    cols = get_collections()
+    if cols and cols.get("memories") is not None:
+        cols["memories"].update_one(
+            {"memoryId": memory_id},
+            {"$set": {"memoryId": memory_id, "content": req.content, "updatedAt": datetime.utcnow()}},
+            upsert=True
+        )
     return {"success": True, "memory_id": memory_id}
 
 
@@ -274,6 +299,12 @@ async def extract_memory(req: ExtractRequest):
         print(f"[Memory Extract] Failed: {e}")
         extraction["reason"] = f"Extraction failed: {str(e)[:100]}"
 
+    # Override LLM category if customTag is provided
+    if req.customTag and req.customTag != "Auto":
+        extraction["category"] = req.customTag
+        extraction["should_save"] = True
+        extraction["reason"] = f"Manually tagged as {req.customTag}"
+
     # Find the category metadata (icon + color)
     cat_info = next((c for c in CATEGORIES if c["label"] == extraction.get("category")), None)
     extraction["categoryIcon"]  = cat_info["icon"]  if cat_info else "🧠"
@@ -298,6 +329,15 @@ async def extract_memory(req: ExtractRequest):
             )
             extraction["saved"]      = True
             extraction["session_id"] = session_id
+            
+            from database import get_collections
+            cols = get_collections()
+            if cols and cols.get("memories") is not None and session_id:
+                cols["memories"].update_one(
+                    {"memoryId": session_id},
+                    {"$set": {"memoryId": session_id, "content": extraction.get("content", req.agentResponse[:800]), "updatedAt": datetime.utcnow()}},
+                    upsert=True
+                )
         except Exception as e:
             print(f"[Memory Extract] Auto-save failed: {e}")
             extraction["saved"] = False
@@ -330,6 +370,15 @@ async def save_confirmed_memory(req: SaveConfirmedRequest):
     )
     if not session_id:
         return {"success": False, "error": "Failed to save to Parcle"}
+        
+    from database import get_collections
+    cols = get_collections()
+    if cols and cols.get("memories") is not None:
+        cols["memories"].update_one(
+            {"memoryId": session_id},
+            {"$set": {"memoryId": session_id, "content": req.content, "updatedAt": datetime.utcnow()}},
+            upsert=True
+        )
     return {
         "success":   True,
         "memory_id": session_id,

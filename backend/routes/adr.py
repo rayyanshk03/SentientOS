@@ -101,29 +101,38 @@ async def get_adrs(limit: int = 50):
 @router.post("/adr/explain")
 async def explain_adr(req: ExplainAdrRequest):
     """
-    Uses the Parcle search API to find the ADR and then Groq LLM to explain it.
+    Finds the ADR from Parcle, looks up its content in MongoDB, and uses Gemini LLM to explain it.
     """
     import asyncio
-    from agent import call_groq
+    from agent import call_gemini
+    from parcle import list_recent_memories
+    from database import get_collections
     
-    # 1. Search Parcle for the specific decision
-    search_query = f"Architecture decision record regarding {req.query}"
-    results = await query_memory(search_query)
-    
-    if not results or not results[0].get("citations"):
+    # 1. Search Parcle memories for the specific decision to get the memory ID
+    sources = await list_recent_memories(limit=100)
+    session_id = None
+    for s in sources:
+        tag = s.get("tag") or {}
+        title = tag.get("title") or s.get("title") or ""
+        if title == req.query:
+            session_id = s.get("id") or s.get("session_id")
+            break
+            
+    if not session_id:
         return {"success": True, "explanation": f"I couldn't find an Architecture Decision Record for '{req.query}' in the memory bank."}
         
-    # 2. Extract context from citations
-    context_chunks = []
-    for r in results:
-        for cit in r.get("citations", []):
-            text = cit.get("text", "")
-            if text and len(text) > 20:
-                context_chunks.append(text)
-                
-    context_text = "\n\n---\n\n".join(context_chunks[:5]) # Top 5 chunks
+    # 2. Extract context from MongoDB using the session ID
+    db_collections = get_collections()
+    if not db_collections or "memories" not in db_collections:
+        return {"success": False, "error": "Database connection failed or memories collection missing"}
+
+    memory_doc = db_collections["memories"].find_one({"memoryId": session_id})
+    context_text = memory_doc.get("content", "") if memory_doc else ""
     
-    # 3. Ask Groq to synthesize an explanation
+    if not context_text:
+        return {"success": True, "explanation": f"The Architecture Decision Record for '{req.query}' has no detailed context."}
+    
+    # 3. Ask Gemini to synthesize an explanation
     system_prompt = """You are a Principal Software Engineer explaining an architectural decision to a team member.
 Use the provided Architecture Decision Record (ADR) context to explain WHY a specific decision was made.
 Focus on the Problem, Chosen Solution, and Reasoning. Do not hallucinate; only use the provided context.
@@ -133,10 +142,10 @@ Keep your explanation concise but informative (1-2 paragraphs), and use bullet p
     
     try:
         explanation = await asyncio.wait_for(
-            call_groq(system_prompt, prompt),
-            timeout=20.0
+            call_gemini(system_prompt, prompt),
+            timeout=30.0
         )
         return {"success": True, "explanation": explanation}
     except Exception as e:
-        print(f"[ADR Explain] Error: {e}")
+        print(f"Error explaining ADR: {e}")
         return {"success": False, "error": str(e)}

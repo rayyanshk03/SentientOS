@@ -197,7 +197,7 @@ export default function DemoPage() {
 
 
   return (
-    <div style={{ ...panelBase, display: 'flex', height: '100%' }}>
+    <div style={{ ...panelBase, display: 'flex', flexDirection: 'row', height: '100%' }}>
       
       {/* LEFT PANEL: Controls */}
       <div style={{ 
@@ -206,7 +206,7 @@ export default function DemoPage() {
       }}>
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 8px 0', color: 'var(--black)' }}>
-            🏆 Judge Demo
+            DEMO PAGE
           </h1>
           <p style={{ margin: 0, color: 'var(--gray-dark)', fontSize: 14, lineHeight: 1.5 }}>
             Execute these steps in order to demonstrate global memory persistence, retrieval, and reasoning capabilities.

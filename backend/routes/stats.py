@@ -40,12 +40,9 @@ async def get_stats():
             total_time_ms = sum(log.get("timeTaken", 0) for log in agent_logs)
             avg_response = round((total_time_ms / queries_today) / 1000, 1)
 
-    # 4. Ingestion Growth (Weekly)
-    # We want an array of 7 integers corresponding to Monday=0, Sunday=6
-    weekly_growth = [0] * 7
+    # 4. Ingestion Growth (Last 24 Hours, 6 buckets of 4 hours)
+    hourly_growth = [0] * 6
     now = datetime.utcnow()
-    # Go back 7 days
-    start_of_week = now - timedelta(days=7)
     
     for m in memories:
         ts_str = m.get("updated_at") or m.get("created_at")
@@ -55,10 +52,11 @@ async def get_stats():
             # Parse ISO 8601 (e.g. "2024-05-18T10:30:00Z" or "2024-05-18T10:30:00.123Z")
             ts_str = ts_str.replace("Z", "+00:00")
             dt = datetime.fromisoformat(ts_str).replace(tzinfo=None)
-            if dt >= start_of_week:
-                # weekday(): Monday is 0, Sunday is 6
-                day_idx = dt.weekday()
-                weekly_growth[day_idx] += 1
+            diff_hours = (now - dt).total_seconds() / 3600
+            if diff_hours < 24:
+                bucket_idx = 5 - int(diff_hours // 4)
+                if 0 <= bucket_idx <= 5:
+                    hourly_growth[bucket_idx] += 1
         except Exception:
             pass
 
@@ -67,7 +65,7 @@ async def get_stats():
         "queriesToday": queries_today,
         "decisionsSaved": decisions_saved,
         "avgResponseTime": avg_response,
-        "weeklyGrowth": weekly_growth,
+        "hourlyGrowth": hourly_growth,
         "mongoConnected": cols is not None and cols.get("projects") is not None,
         "parcleOnline": type(memories) is list
     }

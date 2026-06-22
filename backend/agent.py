@@ -9,7 +9,7 @@ from parcle import query_memory, save_memory
 from database import get_collections
 
 GROQ_API_URL  = "https://api.groq.com/openai/v1/chat/completions"
-GROQ_MODEL    = "llama-3.3-70b-versatile"  # Free, fast, generous quota
+GROQ_MODEL    = "llama-3.1-8b-instant"  # Free, fast, generous quota
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
 
 # ─── Groq (primary — free tier, 14,400 req/day) ─────────────────────────────
@@ -127,26 +127,80 @@ async def call_gemini(system_prompt: str, user_message: str, chat_history: list 
         raise Exception(f"Gemini API error {e.code}: {body[:300]}")
 
 
-# ─── Smart router: Groq → Gemini → mock ─────────────────────────────────────
+# ─── Anthropic (Enter Pro) ──────────────────────────────────────────────────
+async def call_anthropic(system_prompt: str, user_message: str, chat_history: list = None) -> str:
+    from dotenv import dotenv_values
+    from anthropic import Anthropic
+    env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env')
+    config = dotenv_values(env_path)
+    api_key = config.get("ENTER_PRO_API_KEY") or os.getenv("ENTER_PRO_API_KEY")
+
+    if not api_key:
+        raise ValueError("ENTER_PRO_API_KEY missing — add it to your .env file to use Anthropic")
+    
+    client = Anthropic(api_key=api_key.strip())
+    
+    messages = []
+    if chat_history:
+        for msg in chat_history:
+            role = "assistant" if msg.get("role") == "agent" else "user"
+            messages.append({"role": role, "content": msg.get("content", "")})
+    messages.append({"role": "user", "content": user_message})
+
+    loop = asyncio.get_event_loop()
+    def do_request():
+        return client.messages.create(
+            model="claude-3-5-sonnet-latest",
+            max_tokens=1024,
+            temperature=0.7,
+            system=system_prompt,
+            messages=messages
+        )
+
+    try:
+        response = await loop.run_in_executor(None, do_request)
+        return response.content[0].text
+    except Exception as e:
+        raise Exception(f"Anthropic API error: {str(e)}")
+
+
+# ─── Smart router: Anthropic -> Groq → Gemini → mock ────────────────────────
 async def call_llm(system_prompt: str, user_message: str, chat_history: list = None) -> tuple[str, str]:
     """Returns (response_text, provider_name)"""
-    # 1. Try Groq first (free + fast)
+    err_ant = ""
+    err_groq = ""
+    err_gemini = ""
+
+    # 1. Try Anthropic (Enter Pro)
+    try:
+        response = await call_anthropic(system_prompt, user_message, chat_history)
+        return response, "Anthropic Claude (Enter Pro)"
+    except Exception as e:
+        err_ant = str(e)
+        print(f"[LLM] Anthropic failed: {err_ant}")
+
+    # 2. Try Groq (fast fallback)
     try:
         response = await call_groq(system_prompt, user_message, chat_history)
         return response, "Groq LLaMA 3.3"
-    except Exception as groq_err:
-        print(f"[LLM] Groq failed: {groq_err}")
+    except Exception as e:
+        err_groq = str(e)
+        print(f"[LLM] Groq failed: {err_groq}")
 
-    # 2. Fall back to Gemini
+    # 3. Fall back to Gemini
     try:
         response = await call_gemini(system_prompt, user_message, chat_history)
         return response, "Gemini"
-    except Exception as gemini_err:
-        print(f"[LLM] Gemini failed: {gemini_err}")
+    except Exception as e:
+        err_gemini = str(e)
+        print(f"[LLM] Gemini failed: {err_gemini}")
 
-    # 3. Last resort: informative mock
+    # 4. Last resort: informative mock
     mock = (
         "I couldn't reach any AI provider right now.\n\n"
+        f"**Enter Pro (Anthropic) Error:** {err_ant}\n\n"
+        f"**Groq Error:** {err_groq}\n\n"
+        f"**Gemini Error:** {err_gemini}\n\n"
         "**To fix this, add one of these to your `.env` file:**\n\n"
         "**Option A — Groq (recommended, free):**\n"
         "1. Visit [console.groq.com](https://console.groq.com) and sign up (free)\n"
@@ -200,7 +254,7 @@ async def run_agent(user_task: str, persona: str = 'architect', chat_history: li
 
     parcle_memories = []
     try:
-        raw_memories = await asyncio.wait_for(query_memory(query_string), timeout=10.0)
+        raw_memories = await asyncio.wait_for(query_memory(query_string), timeout=20.0)
         
         # Filter out soft-deleted memories
         deleted_ids = set()
