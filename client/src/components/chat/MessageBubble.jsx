@@ -121,7 +121,7 @@ function MemoriesUsed({ memories }) {
           border: 'none',
           cursor: 'pointer',
           padding: 0,
-          color: hovered ? '#0071E3' : '#6E6E73',
+          color: hovered ? '#A855F7' : '#6E6E73',
           fontSize: '12px',
           fontFamily: 'inherit',
           fontWeight: 400,
@@ -150,7 +150,7 @@ function MemoriesUsed({ memories }) {
             return (
               <div key={i} style={{
                 background: '#E8F1FB',
-                color: '#0071E3',
+                color: '#A855F7',
                 borderRadius: '980px',
                 padding: '2px 8px',
                 fontSize: '11px',
@@ -239,7 +239,7 @@ function RatingBar({ onRate, messageId, onSave }) {
           style={{
             ...btnStyle,
             background: pinned ? '#E8F1FB' : (isHoveredPin ? '#F5F5F7' : 'transparent'),
-            color: pinned ? '#0071E3' : '#6E6E73',
+            color: pinned ? '#A855F7' : '#6E6E73',
           }}
         >
           📌
@@ -288,7 +288,7 @@ function RatingBar({ onRate, messageId, onSave }) {
             style={{
               background: 'var(--gray-dark)',
               color: 'var(--white)',
-              border: 'none',
+              border: '2px solid var(--border)',
               borderRadius: 'var(--radius-button)',
               padding: '6px 12px',
               fontSize: 12,
@@ -421,17 +421,19 @@ export default function MessageBubble({ msg, onRate, onSave }) {
       >
         <div
           style={{
-            background: 'linear-gradient(135deg, #0071E3 0%, #0A84FF 100%)',
-            color: 'white',
-            borderRadius: '20px 20px 6px 20px',
+            background: 'var(--bubble-user-bg)',
+            color: 'var(--black)',
+            border: '2px solid var(--border)',
+            borderRadius: 'var(--radius-card) var(--radius-card) 6px var(--radius-card)',
             padding: '12px 16px',
             maxWidth: '72%',
             fontFamily: 'var(--font)',
             fontSize: '15px',
+            fontWeight: 500,
             lineHeight: 1.5,
             whiteSpace: 'pre-wrap',
             wordBreak: 'break-word',
-            boxShadow: '0 4px 14px rgba(0,113,227,0.25)',
+            boxShadow: 'var(--shadow-md)',
           }}
         >
           <div>{msg.content}</div>
@@ -439,7 +441,7 @@ export default function MessageBubble({ msg, onRate, onSave }) {
             style={{
               fontFamily: 'var(--font)',
               fontSize: '11px',
-              color: 'rgba(255, 255, 255, 0.7)',
+              color: 'rgba(0, 0, 0, 0.5)',
               marginTop: '4px',
               textAlign: 'right',
             }}
@@ -503,8 +505,8 @@ export default function MessageBubble({ msg, onRate, onSave }) {
             fontFamily: 'var(--font)',
             fontSize: '15px',
             lineHeight: 1.6,
-            border: '1px solid rgba(0,0,0,0.04)',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+            border: '2px solid var(--border)',
+            boxShadow: 'var(--shadow-md)',
             wordBreak: 'break-word',
           }}
         >

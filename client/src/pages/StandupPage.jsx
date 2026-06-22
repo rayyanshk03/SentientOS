@@ -55,8 +55,8 @@ export default function StandupPage() {
   };
 
   return (
-    <div style={{ ...panelBase, flex: 1, overflowY: 'auto', padding: '40px 48px', background: '#F5F5F7' }}>
-      <div style={{ maxWidth: 840, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 32, width: '100%' }}>
+    <div style={{ ...panelBase, gridColumn: 2, gridRow: '2 / 4', flex: 1, overflowY: 'auto', padding: '40px 48px', background: '#F5F5F7' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 32, width: '100%' }}>
         
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -73,9 +73,9 @@ export default function StandupPage() {
         {/* Generate Action */}
         <div style={{ 
           background: '#ffffff',
-          border: 'none', borderRadius: 20, padding: '48px 40px', 
+          border: '2px solid var(--border)', borderRadius: 'var(--radius-card)', padding: '48px 40px', 
           display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
-          boxShadow: '0 8px 30px rgba(0,0,0,0.04)'
+          boxShadow: 'var(--shadow-md)'
         }}>
           <h2 style={{ fontSize: 24, margin: '0 0 12px', color: '#1d1d1f', fontWeight: 700, letterSpacing: '-0.3px' }}>Ready to sync the team?</h2>
           <p style={{ fontSize: 15, color: '#515154', margin: '0 0 32px', maxWidth: 440, lineHeight: 1.5 }}>
@@ -86,7 +86,7 @@ export default function StandupPage() {
             onClick={handleGenerateStandup} 
             disabled={generating}
             style={{ 
-              background: '#007aff', color: '#ffffff', border: 'none',
+              background: '#007aff', color: '#ffffff', border: '2px solid var(--border)',
               padding: '14px 32px', fontSize: 16, fontWeight: 600, borderRadius: 99,
               cursor: generating ? 'not-allowed' : 'pointer', opacity: generating ? 0.7 : 1,
               transition: 'all 0.2s ease', boxShadow: '0 4px 14px rgba(0,122,255,0.3)'
@@ -107,8 +107,8 @@ export default function StandupPage() {
               ✨ Generated Digest
             </h3>
             <div style={{ 
-              background: '#ffffff', border: 'none', borderRadius: 20,
-              padding: '32px 40px', boxShadow: '0 8px 30px rgba(0,0,0,0.04)'
+              background: '#ffffff', border: '2px solid var(--border)', borderRadius: 'var(--radius-card)',
+              padding: '32px 40px', boxShadow: 'var(--shadow-md)'
             }}>
               <div className="markdown-body" style={{ background: 'transparent', color: '#1d1d1f', fontSize: 15, lineHeight: 1.6 }}>
                 <ReactMarkdown>{todayStandup}</ReactMarkdown>
@@ -123,7 +123,7 @@ export default function StandupPage() {
         {loadingHistory ? (
           <div style={{ textAlign: 'center', padding: '40px', color: '#86868b' }}>Loading History...</div>
         ) : history.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 40px', background: '#ffffff', borderRadius: 20, boxShadow: '0 8px 30px rgba(0,0,0,0.04)' }}>
+          <div style={{ textAlign: 'center', padding: '60px 40px', background: '#ffffff', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow-md)' }}>
             <span style={{ fontSize: 40, opacity: 0.8 }}>🌅</span>
             <p style={{ margin: '16px 0 0', color: '#86868b', fontSize: 15 }}>No standups generated yet.</p>
           </div>
@@ -135,8 +135,8 @@ export default function StandupPage() {
 
               return (
                 <div key={item.id || idx} style={{
-                  background: '#ffffff', border: 'none', borderRadius: 20,
-                  padding: 32, boxShadow: '0 8px 30px rgba(0,0,0,0.04)'
+                  background: '#ffffff', border: '2px solid var(--border)', borderRadius: 'var(--radius-card)',
+                  padding: 32, boxShadow: 'var(--shadow-md)'
                 }}>
                   <div style={{ fontSize: 14, fontWeight: 600, color: '#86868b', marginBottom: 16, borderBottom: '1px solid #E5E5EA', paddingBottom: 16, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                     📅 {dateStr}

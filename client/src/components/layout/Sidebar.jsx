@@ -189,12 +189,12 @@ export default function Sidebar({
         width: isCollapsed ? '56px' : '260px',
         height: '100%',
         background: 'var(--sidebar-bg)',
-        borderRight: '1px solid var(--border)',
+        borderRight: '2px solid var(--border)',
         transition: 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         overflow: 'hidden',
         userSelect: 'none',
         color: 'var(--gray-mid)',
-        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
+        fontFamily: "'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif"
       }}
     >
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
@@ -204,8 +204,10 @@ export default function Sidebar({
             <div style={{
               width: 24,
               height: 24,
-              background: 'linear-gradient(135deg, #0071E3, #00A3FF)',
-              borderRadius: '6px',
+                            background: '#A3E635',
+              border: '2px solid #1D1D1F',
+              boxShadow: '2px 2px 0 #1D1D1F',
+              borderRadius: '8px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -222,8 +224,10 @@ export default function Sidebar({
             <div style={{
               width: 24,
               height: 24,
-              background: 'linear-gradient(135deg, #0071E3, #00A3FF)',
-              borderRadius: '6px',
+                            background: '#A3E635',
+              border: '2px solid #1D1D1F',
+              boxShadow: '2px 2px 0 #1D1D1F',
+              borderRadius: '8px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -337,25 +341,34 @@ export default function Sidebar({
                           padding: '8px 12px',
                           height: 38,
                           borderRadius: '8px',
-                          color: isActive ? 'var(--blue)' : 'var(--gray-mid)',
-                          background: isActive ? 'var(--blue-light)' : 'transparent',
+                          color: isActive ? 'var(--black)' : 'var(--gray-mid)',
+                          background: isActive ? 'var(--lime)' : 'transparent',
+                          border: isActive ? '2px solid var(--border)' : '2px solid transparent',
+                          boxShadow: isActive ? '2px 2px 0 var(--border)' : 'none',
+                          transform: isActive ? 'translateY(-2px)' : 'translateY(0)',
                           textDecoration: 'none',
                           fontSize: '13.5px',
-                          fontWeight: isActive ? 600 : 500,
+                          fontWeight: isActive ? 700 : 600,
                           transition: 'all 0.15s ease',
                           cursor: 'pointer'
                         })}
                         className={({ isActive }) => (isActive ? 'active-nav-link' : '')}
                         onMouseEnter={e => {
                           if (!e.currentTarget.classList.contains('active-nav-link')) {
-                            e.currentTarget.style.background = 'var(--gray-light)';
+                            e.currentTarget.style.background = 'var(--white)';
                             e.currentTarget.style.color = 'var(--black)';
+                            e.currentTarget.style.border = '2px solid var(--border)';
+                            e.currentTarget.style.boxShadow = '2px 2px 0 var(--border)';
+                            e.currentTarget.style.transform = 'translateY(-2px)';
                           }
                         }}
                         onMouseLeave={e => {
                           if (!e.currentTarget.classList.contains('active-nav-link')) {
                             e.currentTarget.style.background = 'transparent';
                             e.currentTarget.style.color = 'var(--gray-mid)';
+                            e.currentTarget.style.border = '2px solid transparent';
+                            e.currentTarget.style.boxShadow = 'none';
+                            e.currentTarget.style.transform = 'translateY(0)';
                           }
                         }}
                       >
@@ -397,7 +410,7 @@ export default function Sidebar({
       </nav>
 
       {/* ── USER PROFILE CARD ───────────────────────────────────────────── */}
-      <div style={{ padding: '12px 8px', borderTop: '1px solid var(--border)', flexShrink: 0 }}>
+      <div style={{ padding: '12px 8px', borderTop: '2px solid var(--border)', flexShrink: 0 }}>
         {!isCollapsed ? (
           <div style={{
             background: 'var(--gray-light)',
@@ -410,8 +423,10 @@ export default function Sidebar({
             <div style={{
               width: 32,
               height: 32,
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #0071E3 0%, #00A3FF 100%)',
+                            background: '#A855F7',
+              border: '2px solid #1D1D1F',
+              boxShadow: '2px 2px 0 #1D1D1F',
+              borderRadius: '8px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -431,8 +446,10 @@ export default function Sidebar({
             <div style={{
               width: 32,
               height: 32,
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #0071E3 0%, #00A3FF 100%)',
+                            background: '#A855F7',
+              border: '2px solid #1D1D1F',
+              boxShadow: '2px 2px 0 #1D1D1F',
+              borderRadius: '8px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

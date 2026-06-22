@@ -135,7 +135,7 @@ export default function ChatWindow({
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{
             width: 44, height: 44, borderRadius: '12px',
-            background: 'linear-gradient(135deg, #0071E3 0%, #409CFF 100%)',
+            background: '#A855F7',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 4px 12px rgba(0,113,227,0.25)',
             fontSize: 22
@@ -262,7 +262,7 @@ export default function ChatWindow({
                 width: 80,
                 height: 80,
                 borderRadius: '50%',
-                background: 'radial-gradient(circle at 35% 35%, #00A3FF, #0071E3, #E8F1FB)',
+                background: '#A3E635',
                 boxShadow: '0 0 40px rgba(0,113,227,0.20)',
                 marginBottom: 20,
                 flexShrink: 0,
@@ -302,9 +302,9 @@ export default function ChatWindow({
                 onClick={() => onSuggestionClick?.("Review the architecture")}
                 style={{
                   background: 'var(--white)',
-                  border: '1px solid rgba(0,0,0,0.04)',
-                  boxShadow: '0 4px 14px rgba(0,0,0,0.03)',
-                  borderRadius: 16,
+                  border: '2px solid var(--border)',
+                  boxShadow: 'var(--shadow-md)',
+                  borderRadius: 'var(--radius-card)',
                   padding: '12px 18px',
                   fontSize: 14,
                   fontWeight: 500,
@@ -421,7 +421,7 @@ export default function ChatWindow({
                 <button 
                   onClick={() => { setDragActive(false); setOverlayError(null); }}
                   style={{
-                    background: 'var(--blue)', color: 'white', border: 'none',
+                    background: 'var(--blue)', color: 'white', border: '2px solid var(--border)',
                     padding: '8px 16px', borderRadius: 'var(--radius-pill)',
                     fontSize: 13, fontWeight: 600, cursor: 'pointer'
                   }}

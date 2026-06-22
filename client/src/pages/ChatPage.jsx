@@ -29,7 +29,7 @@ export default function ChatPage() {
       <div className="zone-chat">
         <main
           className="chat-panel"
-          style={{ ...panelBase, flex: 1, border: 'none', borderRadius: 0, boxShadow: 'none' }}
+          style={{ ...panelBase, flex: 1, border: '2px solid var(--border)', borderRadius: 0, boxShadow: 'none' }}
         >
           <ChatWindow
             messages={messages}

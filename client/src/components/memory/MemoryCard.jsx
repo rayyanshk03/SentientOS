@@ -104,7 +104,7 @@ export default function MemoryCard({
         onMouseLeave={() => { setIsHovered(false); setMenuOpen(false); setShowDeleteConfirm(false); }}
         style={{
           background: 'white',
-          border: `1px solid ${showModal ? '#0071E3' : (isHovered ? '#C7C7CC' : '#E5E5EA')}`,
+          border: `1px solid ${showModal ? '#A855F7' : (isHovered ? '#C7C7CC' : '#E5E5EA')}`,
           borderRadius: '10px',
           padding: '10px 12px',
           marginBottom: '6px',
@@ -127,7 +127,7 @@ export default function MemoryCard({
             <button
               onClick={togglePin}
               style={{
-                background: 'none', border: 'none', padding: 2, cursor: 'pointer',
+                background: 'none', border: '2px solid var(--border)', padding: 2, cursor: 'pointer',
                 color: localPinned ? 'var(--blue)' : 'var(--gray-mid)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center'
               }}
@@ -224,7 +224,7 @@ export default function MemoryCard({
               onClick={(e) => { e.stopPropagation(); setExpanded(true); }}
               className="no-modal-click"
               style={{
-                background: 'none', border: 'none', padding: 0,
+                background: 'none', border: '2px solid var(--border)', padding: 0,
                 color: 'var(--blue)', fontSize: 13, cursor: 'pointer',
                 marginLeft: 4,
               }}

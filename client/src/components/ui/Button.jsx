@@ -21,27 +21,27 @@ function Spinner({ size = 16 }) {
 /* ─── Variant styles ─────────────────────────────────────────────────────── */
 const VARIANTS = {
   primary: {
-    background: 'var(--blue)',
-    color: 'var(--white)',
-    border: 'none',
-    '--hover-bg': 'var(--blue-hover)',
+    background: '#A855F7',
+    color: '#FFFFFF',
+    border: '2px solid #1D1D1F',
+    '--hover-bg': '#9333EA',
   },
   secondary: {
-    background: 'var(--white)',
-    color: 'var(--blue)',
-    border: '1.5px solid var(--blue)',
-    '--hover-bg': 'var(--blue-light)',
+    background: '#FFFFFF',
+    color: '#1D1D1F',
+    border: '2px solid #1D1D1F',
+    '--hover-bg': '#F4F4F5',
   },
   ghost: {
-    background: 'transparent',
-    color: 'var(--gray-mid)',
-    border: 'none',
-    '--hover-bg': 'var(--gray-light)',
+    background: '#A3E635',
+    color: '#1D1D1F',
+    border: '2px solid #1D1D1F',
+    '--hover-bg': '#84CC16',
   },
   danger: {
     background: '#FF3B30',
-    color: 'var(--white)',
-    border: 'none',
+    color: '#FFFFFF',
+    border: '2px solid #1D1D1F',
     '--hover-bg': '#E0342A',
   },
 };
@@ -99,7 +99,7 @@ export default function Button({
     background:     bgColor,
     color:          v.color,
     border:         v.border ?? 'none',
-    borderRadius:   'var(--radius-button)',
+    borderRadius:   '12px',
     padding:        s.padding,
     fontSize:       s.fontSize,
     fontWeight:     600,
@@ -111,25 +111,20 @@ export default function Button({
     /* interaction */
     cursor:     isDisabled ? 'not-allowed' : 'pointer',
     opacity:    isDisabled ? 0.5 : 1,
-    transform:  isDisabled
-      ? 'none'
-      : pressed
-        ? 'translateY(0px) scale(0.97)'
-        : hovered
-          ? 'translateY(-1px)'
-          : 'translateY(0px) scale(1)',
+    transform:  isDisabled ? 'none'
+      : pressed ? 'translateY(2px)'
+      : hovered ? 'translateY(-2px)'
+      : 'translateY(0px)',
     outline:    'none',
 
     /* transition */
-    transition: 'background 0.1s ease, color 0.1s ease, transform 0.12s ease, opacity 0.15s ease, box-shadow 0.2s ease',
+    transition: 'all 0.15s ease',
 
-    /* shadow — lifts on hover for primary, subtle for secondary */
+    /* shadow */
     boxShadow: isDisabled ? 'none'
-      : pressed ? 'none'
-      : hovered && variant === 'primary'  ? '0 4px 16px rgba(0,113,227,0.35)'
-      : hovered && variant === 'secondary'? '0 2px 8px rgba(0,113,227,0.18)'
-      : hovered && variant === 'danger'   ? '0 4px 14px rgba(255,59,48,0.30)'
-      : 'none',
+      : pressed ? '0 2px 0 #1D1D1F'
+      : hovered ? '0 6px 0 #1D1D1F'
+      : '0 4px 0 #1D1D1F',
 
     ...style,
   };

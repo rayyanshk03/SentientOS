@@ -72,7 +72,7 @@ function ToastItem({ toast, onDismiss }) {
   const accentColor = toast.type === 'error'   ? '#FF3B30'
                     : toast.type === 'success' ? '#34C759'
                     : toast.type === 'warning' ? '#FF9500'
-                    : '#0071E3';
+                    : '#A855F7';
 
   return (
     <div
@@ -98,7 +98,7 @@ function ToastItem({ toast, onDismiss }) {
           onClick={dismiss}
           style={{
             marginLeft: 4, background: 'rgba(255,255,255,0.10)',
-            border: 'none', borderRadius: 5, color: '#FFFFFF',
+            border: '2px solid var(--border)', borderRadius: 5, color: '#FFFFFF',
             fontSize: 11, fontWeight: 600, padding: '2px 7px',
             cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0,
             transition: 'background 0.15s ease',
@@ -177,7 +177,7 @@ function OnboardingModal({ onComplete }) {
       backdropFilter: 'blur(4px)',
     }}>
       <div className="toast-enter" style={{
-        background: 'var(--white)', borderRadius: 24,
+        background: 'var(--white)', borderRadius: 'var(--radius-card)',
         padding: '40px 36px', maxWidth: 440, width: '90vw',
         boxShadow: '0 24px 64px rgba(0,0,0,0.22)',
         display: 'flex', flexDirection: 'column', alignItems: 'center',
@@ -196,7 +196,7 @@ function OnboardingModal({ onComplete }) {
 
         {/* Emoji */}
         <div style={{
-          width: 72, height: 72, borderRadius: 20,
+          width: 72, height: 72, borderRadius: 'var(--radius-card)',
           background: 'linear-gradient(135deg, var(--blue-light) 0%, var(--gray-light) 100%)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 36,
@@ -427,7 +427,7 @@ export default function App() {
       if (shouldAutoSave && data.saved) {
         // Already saved on the backend — show rich success toast
         const catIcon  = data.categoryIcon  || '🧠';
-        const catColor = data.categoryColor || '#0071E3';
+        const catColor = data.categoryColor || '#A855F7';
         addToast(`${catIcon} Saved: "${data.title}" · ${data.category}`, 'success', 4500);
         refreshMemories();
         return;
@@ -883,7 +883,7 @@ export default function App() {
   ══════════════════════════════════════════════════════════════════════════ */
   return (
     <div className="app-grid" style={{
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif",
+      fontFamily: "'Space Grotesk', -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif",
     }}>
       {/* ── Full-page app boot loader ─────────────────────────────────────── */}
       {isAppLoading && <AppLoader message="Loading your memories…" />}
@@ -1176,7 +1176,7 @@ export default function App() {
             display: block !important; visibility: visible !important;
             position: fixed; inset: 0; z-index: 99999;
             background: var(--white); overflow: auto;
-            font-family: 'Inter', -apple-system, sans-serif;
+            font-family: 'Space Grotesk', -apple-system, sans-serif;
             color: var(--black); padding: 36px 48px;
           }
           #print-report * { visibility: visible !important; }

@@ -84,8 +84,8 @@ export default function BugsPage() {
   };
 
   return (
-    <div style={{ ...panelBase, flex: 1, overflowY: 'auto', padding: '40px 48px', background: '#F5F5F7' }}>
-      <div style={{ maxWidth: 840, margin: '0 auto' }}>
+    <div style={{ ...panelBase, gridColumn: 2, gridRow: '2 / 4', flex: 1, overflowY: 'auto', padding: '40px 48px', background: '#F5F5F7' }}>
+      <div style={{ }}>
         
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
@@ -104,8 +104,8 @@ export default function BugsPage() {
 
         {/* AI Bug Search */}
         <div style={{ 
-          background: 'var(--white)', border: 'none', borderRadius: 20,
-          padding: 32, marginBottom: 40, boxShadow: '0 8px 30px rgba(0,0,0,0.04)'
+          background: 'var(--white)', border: '2px solid var(--border)', borderRadius: 'var(--radius-card)',
+          padding: 32, marginBottom: 40, boxShadow: 'var(--shadow-md)'
         }}>
           <h3 style={{ margin: '0 0 20px', fontSize: 18, fontWeight: 600, color: '#1d1d1f', letterSpacing: '-0.3px' }}>🤖 Have we seen this bug before?</h3>
           <form onSubmit={handleSearch} style={{ display: 'flex', gap: 12 }}>
@@ -127,7 +127,7 @@ export default function BugsPage() {
           {/* Search Results Area */}
           {(isSearching || searchResult) && (
             <div style={{
-              marginTop: 24, padding: 24, background: 'rgba(120, 86, 255, 0.04)', borderRadius: 16,
+              marginTop: 24, padding: 24, background: 'rgba(120, 86, 255, 0.04)', borderRadius: 'var(--radius-card)',
               borderLeft: '4px solid var(--purple)'
             }}>
               {isSearching ? (
@@ -154,7 +154,7 @@ export default function BugsPage() {
         {loading ? (
           <div style={{ textAlign: 'center', padding: '40px', color: '#86868b' }}>Loading Bug History...</div>
         ) : bugs.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px', background: 'var(--white)', borderRadius: 20, boxShadow: '0 8px 30px rgba(0,0,0,0.04)' }}>
+          <div style={{ textAlign: 'center', padding: '60px', background: 'var(--white)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow-md)' }}>
             <span style={{ fontSize: 32 }}>🐛</span>
             <h3 style={{ margin: '16px 0 8px', color: '#1d1d1f', fontSize: 20, fontWeight: 600 }}>No bugs logged</h3>
             <p style={{ margin: 0, color: '#86868b' }}>Document your first bug fix so the AI can help you next time.</p>
@@ -167,8 +167,8 @@ export default function BugsPage() {
 
               return (
                 <div key={bug.id} style={{
-                  background: 'var(--white)', border: 'none', borderRadius: 20,
-                  padding: 32, boxShadow: '0 8px 30px rgba(0,0,0,0.04)', display: 'flex', gap: 24,
+                  background: 'var(--white)', border: '2px solid var(--border)', borderRadius: 'var(--radius-card)',
+                  padding: 32, boxShadow: 'var(--shadow-md)', display: 'flex', gap: 24,
                   transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)'
                 }}>
                   <div style={{ fontSize: 28, padding: '4px 0', filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))' }}>🐛</div>

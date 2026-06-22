@@ -144,12 +144,12 @@ const ScrollFadeIn = ({ children, delay = 0 }) => {
 const TerminalAnimation = () => {
   const lines = [
     { text: "> Querying Parcle memory...", color: "#6E6E73" },
-    { text: "✓ Found 3 relevant decisions", color: "#28C840" },
+    { text: "✓ Found 3 relevant decisions", color: "#A3E635" },
     { text: "> Building context-aware prompt...", color: "#6E6E73" },
-    { text: "✓ Architecture: FastAPI + MongoDB", color: "#28C840" },
-    { text: "✓ Style: Apple design system", color: "#28C840" },
+    { text: "✓ Architecture: FastAPI + MongoDB", color: "#A3E635" },
+    { text: "✓ Style: Apple design system", color: "#A3E635" },
     { text: "> Generating response...", color: "#6E6E73" },
-    { text: "✓ Done. Memory saved to Parcle.", color: "#0071E3" }
+    { text: "✓ Done. Memory saved to Parcle.", color: "#A855F7" }
   ];
 
   const [currentLine, setCurrentLine] = useState(0);
@@ -198,7 +198,7 @@ const TerminalAnimation = () => {
           eternal-architect
         </div>
       </div>
-      <div style={{ minHeight: '160px', opacity: fading ? 0 : 1, transition: 'opacity 1s ease' }}>
+      <div style={{ height: '280px', opacity: fading ? 0 : 1, transition: 'opacity 1s ease' }}>
         {lines.map((line, idx) => {
           if (idx < currentLine) return <div key={idx} style={{ color: line.color }}>{line.text}</div>;
           if (idx === currentLine) {
@@ -230,7 +230,7 @@ export default function Landing() {
       minHeight: '100vh',
       backgroundColor: '#FFFFFF',
       color: '#1D1D1F',
-      fontFamily: "'Inter', -apple-system, sans-serif",
+      fontFamily: "'Space Grotesk', -apple-system, sans-serif",
       display: 'flex',
       flexDirection: 'column',
       overflowX: 'hidden',
@@ -239,57 +239,15 @@ export default function Landing() {
       <style>{`
         /* Global Reset for this view */
         body { 
-          background-color: #1D1D1F; 
-          background-image: 
-            linear-gradient(to right, rgba(249, 115, 22, 0.07) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(249, 115, 22, 0.07) 1px, transparent 1px);
-          background-size: 40px 40px;
+          background-color: #FFFFFF; 
           margin: 0; 
         }
         
         @keyframes fadeUp {
-          0% { opacity: 0; transform: translateY(30px); }
+          0% { opacity: 0; transform: translateY(20px); }
           100% { opacity: 1; transform: translateY(0); }
         }
-        @keyframes float-card {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-20px); }
-        }
-        @keyframes float-orb-1 {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          33%  { transform: translate(60px, 40px) scale(1.05); }
-          66%  { transform: translate(-30px, 60px) scale(0.95); }
-        }
-        @keyframes float-orb-2 {
-          0%, 100% { transform: translate(0, 0); }
-          50% { transform: translate(-80px, 80px); }
-        }
-        @keyframes float-orb-3 {
-          0% { transform: translateX(-50%) translateY(0); }
-          100% { transform: translateX(-55%) translateY(-60px) scale(1.05); }
-        }
-        @keyframes logo-pulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(0,113,227,0.4); }
-          50% { box-shadow: 0 0 0 8px rgba(0,113,227,0); }
-        }
-        @keyframes pulseGlow {
-          0%, 100% { box-shadow: 0 0 20px rgba(0, 113, 227, 0.4), inset 0 0 0 rgba(255,255,255,0); }
-          50% { box-shadow: 0 0 35px rgba(0, 113, 227, 0.7), inset 0 0 10px rgba(255,255,255,0.1); }
-        }
-        @keyframes borderGlow {
-          0%, 100% { border-color: rgba(124, 58, 237, 0.2); box-shadow: 0 0 15px rgba(124, 58, 237, 0.1); }
-          50% { border-color: rgba(6, 182, 212, 0.5); box-shadow: 0 0 25px rgba(6, 182, 212, 0.2); }
-        }
 
-        @keyframes gradient-shift {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        @keyframes ring-pulse {
-          0% { transform: scale(1); opacity: 1; }
-          100% { transform: scale(1.4); opacity: 0; }
-        }
         @keyframes cursor-blink {
           0%, 100% { opacity: 1; }
           50% { opacity: 0; }
@@ -303,13 +261,13 @@ export default function Landing() {
         }
 
         .feat-card {
-          background: rgba(0,0,0,0.03);
-          border: 1px solid rgba(255,255,255,0.07);
-          border-radius: 20px;
+          background: #F5F5F7;
+          border: 1px solid rgba(0,0,0,0.05);
+          border-radius: 24px;
           padding: 32px 28px;
           position: relative;
           overflow: hidden;
-          transition: all 0.3s ease;
+          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
           text-align: left;
           display: flex;
           flex-direction: column;
@@ -317,54 +275,92 @@ export default function Landing() {
           box-sizing: border-box;
         }
         .feat-card:hover {
-          background: rgba(0,0,0,0.06);
-          border-color: rgba(0,0,0,0.1);
-          transform: translateY(-6px);
-          box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+          transform: translateY(-4px) scale(1.01);
+          box-shadow: 0 16px 40px rgba(0,0,0,0.06);
+          border-color: rgba(0,0,0,0.08);
         }
-        .feat-card::before {
-          content: "";
-          position: absolute;
-          top: 0; left: 0;
-          width: 200px; height: 200px;
-          opacity: 0;
-          transition: opacity 0.3s ease;
-          pointer-events: none;
-        }
-        .feat-card:hover::before {
-          opacity: 0.08;
-        }
-        .feat-card-1::before { background: radial-gradient(circle at top left, #0071E3, transparent 70%); }
-        .feat-card-2::before { background: radial-gradient(circle at top left, #7C3AED, transparent 70%); }
-        .feat-card-3::before { background: radial-gradient(circle at top left, #06B6D4, transparent 70%); }
 
-        .feat-grid {
+                .feat-grid {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 20px;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 24px;
         }
 
-        .timeline-container {
+        .neo-card {
+          border: 2px solid #1D1D1F;
+          border-radius: 32px;
+          padding: 48px 40px;
+          box-shadow: 0 8px 0 #1D1D1F;
+          min-height: 280px;
           display: flex;
-          justify-content: space-between;
           position: relative;
-          margin-top: 48px;
+          overflow: hidden;
+          transition: transform 0.2s, box-shadow 0.2s;
         }
-        .timeline-line {
-          position: absolute;
-          top: 23px;
-          left: 10%;
-          right: 10%;
-          border-top: 2px dashed rgba(255,255,255,0.1);
-          z-index: 0;
+        .neo-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 0 #1D1D1F;
         }
-        .timeline-step {
+        
+        .neo-card-content {
           display: flex;
           flex-direction: column;
-          align-items: center;
-          position: relative;
+          z-index: 2;
+          width: 60%;
+        }
+
+        .neo-card-graphic {
+          position: absolute;
+          right: 40px;
+          top: 50%;
+          transform: translateY(-50%);
           z-index: 1;
-          flex: 1;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+
+        .neo-pill {
+          display: inline-block;
+          padding: 2px 12px;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 26px;
+          letter-spacing: -0.5px;
+          margin-bottom: 4px;
+          width: fit-content;
+        }
+
+        .neo-subtitle {
+          font-size: 26px;
+          font-weight: 500;
+          letter-spacing: -0.5px;
+          margin-top: 0;
+          margin-bottom: 24px;
+        }
+
+        .neo-learn-more {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-top: auto;
+          cursor: pointer;
+        }
+
+        .neo-lm-circle {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 16px;
+          font-weight: bold;
+        }
+
+        .neo-lm-text {
+          font-size: 15px;
+          font-weight: 500;
         }
 
         .footer-content {
@@ -380,178 +376,203 @@ export default function Landing() {
         .footer-right { justify-self: end; text-align: right; }
 
         .terminal-card {
-          width: 100%;
-          max-width: 560px;
-          margin: 40px auto;
-          background: rgba(0,0,0,0.03);
-          border: 1px solid rgba(255,255,255,0.08);
+          width: 680px;
+          min-width: 680px;
+          height: 380px;
+          flex-shrink: 0;
+          box-sizing: border-box;
+          margin: 0;
+          background: #111111;
           border-radius: 16px;
-          padding: 20px 24px;
-          box-shadow: 0 0 60px rgba(0,113,227,0.1), 0 32px 64px rgba(0,0,0,0.4);
+          border: 3px solid #1D1D1F;
+          padding: 32px 36px;
+          box-shadow: 16px 16px 0 #A855F7;
           text-align: left;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 13px;
-          line-height: 1.8;
+          font-family: 'JetBrains Mono', 'Courier New', monospace;
+          font-size: 16px;
+          line-height: 2;
           opacity: 0;
-          animation: fadeUp 1s ease-out forwards;
-          animation-delay: 0.7s;
+          animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          animation-delay: 0.5s;
         }
 
         .primary-btn-wrapper {
           position: relative;
           display: inline-block;
           opacity: 0;
-          animation: fadeUp 0.6s ease-out forwards;
-          animation-delay: 0.9s;
-        }
-        .primary-btn-wrapper::after {
-          content: '';
-          position: absolute;
-          top: 0; left: 0; right: 0; bottom: 0;
-          border-radius: 980px;
-          border: 2px solid rgba(0, 113, 227, 0.4);
-          animation: ring-pulse 2s ease-out infinite;
-          pointer-events: none;
+          animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          animation-delay: 0.7s;
         }
         .hero-btn {
           display: flex;
           align-items: center;
+          justify-content: center;
           gap: 10px;
           padding: 16px 32px;
-          border-radius: 980px;
-          font-family: 'Inter', sans-serif;
+          border-radius: 12px;
+          font-family: 'Space Grotesk', -apple-system, sans-serif;
           cursor: pointer;
-          transition: all 0.2s ease-out;
-        }
-        .hero-btn-primary {
-          background: linear-gradient(135deg, #0071E3, #0051A3);
-          color: #FFFFFF;
+          transition: all 0.15s ease;
           font-size: 16px;
           font-weight: 600;
-          border: none;
-          box-shadow: 0 0 30px rgba(0,113,227,0.35), 0 4px 16px rgba(0,0,0,0.3);
-          position: relative;
-          z-index: 2;
+          min-width: 160px;
+        }
+        .hero-btn-primary {
+          background: #A855F7;
+          color: #FFFFFF;
+          border: 2px solid #1D1D1F;
+          box-shadow: 0 4px 0 #1D1D1F;
         }
         .hero-btn-primary:hover {
-          transform: translateY(-2px) scale(1.02);
-          box-shadow: 0 0 50px rgba(0,113,227,0.5);
+          background: #9333EA;
+          transform: translateY(-2px);
+          box-shadow: 0 6px 0 #1D1D1F;
         }
         .hero-btn-primary:active {
-          transform: scale(0.98);
+          transform: translateY(2px);
+          box-shadow: 0 2px 0 #1D1D1F;
         }
 
         .hero-btn-secondary {
-          background: rgba(0,0,0,0.06);
-          border: 1px solid rgba(0,0,0,0.1);
+          background: #FFFFFF;
           color: #1D1D1F;
-          font-size: 16px;
-          font-weight: 500;
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-          opacity: 0;
-          animation: fadeUp 0.6s ease-out forwards;
-          animation-delay: 0.9s;
+          border: 2px solid #1D1D1F;
+          box-shadow: 0 4px 0 #1D1D1F;
         }
         .hero-btn-secondary:hover {
-          background: rgba(0,0,0,0.08);
-          border-color: rgba(0,0,0,0.15);
-          transform: translateY(-1px);
+          background: #FAFAFA;
+          transform: translateY(-2px);
+          box-shadow: 0 6px 0 #1D1D1F;
+        }
+        .hero-btn-secondary:active {
+          transform: translateY(2px);
+          box-shadow: 0 2px 0 #1D1D1F;
         }
 
         .nav-btn {
-          transition: all 0.2s;
+          background: #A855F7;
+          color: #FFFFFF;
+          border: 2px solid #1D1D1F;
+          box-shadow: 0 2px 0 #1D1D1F;
+          border-radius: 12px;
+          padding: 8px 16px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-family: 'Space Grotesk', -apple-system, sans-serif;
+          transition: all 0.15s ease;
         }
         .nav-btn:hover {
-          background: #0077ED !important;
-          box-shadow: 0 0 30px rgba(0,113,227,0.6) !important;
-          transform: translateY(-1px);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 0 #1D1D1F;
+        }
+        .nav-btn:active {
+          transform: translateY(1px);
+          box-shadow: 0 1px 0 #1D1D1F;
         }
 
-        .text-gradient {
-          background: linear-gradient(180deg, #1D1D1F 0%, #6E6E73 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
+        .nav-glass {
+          background: rgba(255, 255, 255, 0.7);
+          backdrop-filter: saturate(180%) blur(20px);
+          -webkit-backdrop-filter: saturate(180%) blur(20px);
+          border-bottom: 1px solid rgba(0,0,0,0.05);
         }
 
         @media (max-width: 900px) {
-          .feat-grid { grid-template-columns: 1fr; }
-          .hero-layout {
-            flex-direction: column;
-            text-align: center;
-            padding-top: 100px !important;
+          .feat-grid {
+            grid-template-columns: 1fr;
           }
-          .hero-layout-left {
-            align-items: center !important;
-            text-align: center !important;
+          .neo-card {
+            padding: 32px;
+            min-height: 240px;
           }
-          .hero-buttons {
-            justify-content: center !important;
-          }
-          .hero-layout-right {
-            justify-content: center !important;
-            margin-top: 40px;
-          }
-        }
-        @media (max-width: 768px) {
-          .hero-title { font-size: 44px !important; }
-          .cta-title { font-size: 40px !important; }
-          .stat-divider { display: none !important; }
-          .timeline-container {
-            flex-direction: column;
-            gap: 40px;
-          }
-          .timeline-line {
-            top: 24px; bottom: 24px;
-            left: 50%; right: auto;
-            border-top: none;
-            border-left: 2px dashed rgba(255,255,255,0.1);
-            transform: translateX(-50%);
+          .neo-card-graphic {
+            right: -20px;
+            opacity: 0.5;
           }
           .footer-content {
             grid-template-columns: 1fr;
             text-align: center;
+            gap: 16px;
           }
           .footer-left, .footer-center, .footer-right {
             justify-self: center;
             text-align: center;
           }
-          .footer-left {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-          }
-          .footer-center { order: 3; margin-top: 16px; }
         }
-      `}</style>
+`}</style>
 
-      {/* AMBIENT BACKGROUND GLOWS */}
-      <div style={{
-        position: 'fixed', top: '-200px', left: '-200px', width: '600px', height: '600px',
-        background: 'radial-gradient(circle, rgba(0,113,227,0.15), transparent 70%)',
-        pointerEvents: 'none', zIndex: 0,
-        animation: 'float-orb-1 12s ease-in-out infinite'
-      }} />
-      <div style={{
-        position: 'fixed', top: '-100px', right: '-200px', width: '500px', height: '500px',
-        background: 'radial-gradient(circle, rgba(124,58,237,0.12), transparent 70%)',
-        pointerEvents: 'none', zIndex: 0,
-        animation: 'float-orb-2 15s ease-in-out infinite'
-      }} />
-      <div style={{
-        position: 'fixed', bottom: '-200px', left: '50%', width: '700px', height: '400px',
-        background: 'radial-gradient(ellipse, rgba(6,182,212,0.08), transparent 70%)',
-        pointerEvents: 'none', zIndex: 0,
-        animation: 'float-orb-3 18s ease-in-out infinite alternate',
-        transform: 'translateX(-50%)'
-      }} />
+            {/* 4K DYNAMIC THEME BACKGROUND */}
+      <div style={{ position: 'fixed', inset: 0, zIndex: 0, overflow: 'hidden', background: '#FAFAFA' }}>
+        {/* Animated CSS Grid */}
+        <div style={{
+          position: 'absolute', inset: '-100%',
+          backgroundImage: 'linear-gradient(rgba(29, 29, 31, 0.04) 2px, transparent 2px), linear-gradient(90deg, rgba(29, 29, 31, 0.04) 2px, transparent 2px)',
+          backgroundSize: '60px 60px',
+          animation: 'panGrid 40s linear infinite',
+        }} />
+        
+        <style>{`
+          @keyframes panGrid {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(60px, 60px); }
+          }
+          @keyframes orb-float-1 {
+            0% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(15vw, 15vh) scale(1.2); }
+            66% { transform: translate(-10vw, 20vh) scale(0.9); }
+            100% { transform: translate(0, 0) scale(1); }
+          }
+          @keyframes orb-float-2 {
+            0% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(-20vw, -10vh) scale(1.1); }
+            66% { transform: translate(10vw, -15vh) scale(1.3); }
+            100% { transform: translate(0, 0) scale(1); }
+          }
+          @keyframes orb-float-3 {
+            0% { transform: translate(0, 0) scale(1.2); }
+            50% { transform: translate(15vw, -10vh) scale(0.8); }
+            100% { transform: translate(0, 0) scale(1.2); }
+          }
+        `}</style>
 
-      {/* NOISE OVERLAY */}
-      <div style={{
-        position: 'fixed', inset: 0, zIndex: 1, pointerEvents: 'none', opacity: 0.03,
-        backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")'
-      }} />
+        {/* Purple Orb */}
+        <div style={{
+          position: 'absolute', top: '-10vh', left: '-10vw', width: '60vw', height: '60vw',
+          background: 'radial-gradient(circle, rgba(168,85,247,0.25) 0%, transparent 60%)',
+          animation: 'orb-float-1 20s ease-in-out infinite',
+          filter: 'blur(60px)',
+          pointerEvents: 'none'
+        }} />
+
+        {/* Lime Orb */}
+        <div style={{
+          position: 'absolute', bottom: '-10vh', right: '-10vw', width: '70vw', height: '70vw',
+          background: 'radial-gradient(circle, rgba(163,230,53,0.25) 0%, transparent 60%)',
+          animation: 'orb-float-2 25s ease-in-out infinite reverse',
+          filter: 'blur(80px)',
+          pointerEvents: 'none'
+        }} />
+
+        {/* Secondary Purple/Pink Orb for mixing */}
+        <div style={{
+          position: 'absolute', top: '40vh', left: '40vw', width: '40vw', height: '40vw',
+          background: 'radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%)',
+          animation: 'orb-float-3 18s ease-in-out infinite',
+          filter: 'blur(50px)',
+          pointerEvents: 'none'
+        }} />
+
+        {/* Noise overlay to bind it all together with premium texture */}
+        <div style={{
+          position: 'absolute', inset: 0, opacity: 0.04, mixBlendMode: 'overlay',
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+          pointerEvents: 'none'
+        }} />
+      </div>
 
       {/* CONTENT WRAPPER */}
       <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -575,13 +596,9 @@ export default function Landing() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
-              background: 'linear-gradient(135deg, #0071E3, #7C3AED)',
-              borderRadius: '8px',
-              padding: '6px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              animation: 'logo-pulse 3s infinite'
             }}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1D1D1F" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9.5 2h5M12 2v4M12 22v-4" />
@@ -595,28 +612,13 @@ export default function Landing() {
                 <path d="M17.5 19.5 20 22" />
               </svg>
             </div>
-            <span style={{ fontSize: '16px', fontWeight: 600, color: '#1D1D1F', letterSpacing: '-0.3px', fontFamily: "'Inter', -apple-system, sans-serif" }}>
+            <span style={{ fontSize: '16px', fontWeight: 600, color: '#1D1D1F', letterSpacing: '-0.3px', fontFamily: "'Space Grotesk', -apple-system, sans-serif" }}>
               SentientOS
             </span>
           </div>
           <button 
             onClick={() => navigate('/app')}
             className="nav-btn"
-            style={{
-              background: '#0071E3',
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: '980px',
-              padding: '10px 20px',
-              fontSize: '14px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              boxShadow: '0 0 20px rgba(0,113,227,0.4)',
-              fontFamily: "'Inter', -apple-system, sans-serif"
-            }}
           >
             Launch App <span>→</span>
           </button>
@@ -624,7 +626,7 @@ export default function Landing() {
 
         {/* HERO SECTION WRAPPER */}
       <div style={{
-        background: '#FFFFFF',
+        background: 'transparent',
         width: '100%',
         position: 'relative'
       }}>
@@ -634,13 +636,13 @@ export default function Landing() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '160px 24px 80px',
-            maxWidth: '1200px',
-            margin: '0 auto',
+            padding: '180px 80px 120px',
             width: '100%',
             position: 'relative',
             zIndex: 10,
-            gap: '40px'
+            gap: '80px',
+            boxSizing: 'border-box',
+            minHeight: '100vh'
           }}
         >
           {/* LEFT SIDE: TEXT CONTENT */}
@@ -648,46 +650,64 @@ export default function Landing() {
             {/* Animated badge */}
             <div 
               style={{
-                background: 'rgba(0,113,227,0.1)',
-                color: '#0071E3',
-                border: '1px solid rgba(249,115,22,0.3)',
+                background: 'rgba(255,255,255,0.8)',
+                color: '#6E6E73',
+                border: '1px solid rgba(168,85,247,0.4)',
                 borderRadius: '980px',
                 padding: '6px 16px',
-                fontSize: '13px',
+                fontSize: '11px',
+                letterSpacing: '1px',
                 fontWeight: 600,
-                marginBottom: '36px',
-                display: 'inline-block',
+                marginBottom: '24px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
                 opacity: 0,
                 animation: 'fadeUp 0.6s ease-out forwards',
-                animationDelay: '0.1s'
+                animationDelay: '0.1s',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.02)'
               }}
             >
-              ⚡ Powered by Parcle + Enter Pro
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#A855F7' }} />
+              <span>POWERED BY PARCLE · ENTER PRO</span>
             </div>
 
             {/* Main headline */}
             <h1 
               className="hero-title"
               style={{
-                fontSize: '80px',
-                fontWeight: 800,
-                lineHeight: 1.05,
-                letterSpacing: '-3px',
-                margin: '0 0 28px 0',
+                fontSize: '76px',
+                fontWeight: 600,
+                lineHeight: 1.15,
+                letterSpacing: '-2.5px',
+                margin: '0 0 24px 0',
                 opacity: 0,
                 animation: 'fadeUp 0.8s ease-out forwards',
-                animationDelay: '0.3s'
+                animationDelay: '0.3s',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                gap: '8px'
               }}
             >
-              <span style={{ color: '#1D1D1F' }}>The AI Engineer</span><br/>
-              <span style={{ color: '#0071E3' }}>That Never Forgets.</span>
+              <span style={{ color: '#1D1D1F' }}>The AI Engineer,</span>
+              <span style={{ 
+                background: '#A855F7', 
+                color: '#FFFFFF', 
+                padding: '2px 24px 8px 24px', 
+                borderRadius: '20px',
+                display: 'inline-block',
+                boxShadow: '0 10px 30px rgba(168, 85, 247, 0.3)'
+              }}>
+                That Never Forgets.
+              </span>
             </h1>
 
             {/* Subtitle */}
             <p 
               style={{
                 fontSize: '20px',
-                fontWeight: 500,
+                fontWeight: 400,
                 color: '#6E6E73',
                 maxWidth: '560px',
                 lineHeight: 1.7,
@@ -710,7 +730,7 @@ export default function Landing() {
                 flexWrap: 'wrap'
               }}
             >
-              <div className="primary-btn-wrapper">
+              <div>
                 <button
                   onClick={() => navigate('/app')}
                   className="hero-btn hero-btn-primary"
@@ -762,22 +782,17 @@ export default function Landing() {
           <span>🏗️ Built on Enter Pro</span>
         </div>
 
-      {/* STATS STRIP SECTION */}
-      <StatsStrip />
-
       {/* FEATURE CARDS SECTION */}
       <div 
         style={{
-          padding: '80px 24px',
-          maxWidth: '1100px',
-          margin: '0 auto',
+          padding: '120px 80px',
           width: '100%',
           boxSizing: 'border-box'
         }}
       >
         <div style={{
-          color: '#0071E3',
-          fontFamily: "'Inter', sans-serif",
+          color: '#A855F7',
+          fontFamily: "'Space Grotesk', sans-serif",
           fontWeight: 600,
           fontSize: '11px',
           letterSpacing: '2px',
@@ -788,7 +803,7 @@ export default function Landing() {
         </div>
         
         <h2 style={{
-          fontFamily: "'Inter', sans-serif",
+          fontFamily: "'Space Grotesk', sans-serif",
           fontWeight: 700,
           fontSize: '40px',
           color: '#1D1D1F',
@@ -798,261 +813,109 @@ export default function Landing() {
           Built different. Built to remember.
         </h2>
 
-        <div className="feat-grid">
+                <div className="feat-grid">
           {/* Card 1 */}
           <ScrollFadeIn delay={0}>
-            <div className="feat-card feat-card-1">
-              <div style={{
-                width: '56px', height: '56px',
-                borderRadius: '14px',
-                background: 'rgba(0,113,227,0.12)',
-                border: '1px solid rgba(0,113,227,0.2)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '28px'
-              }}>
-                🧠
+            <div className="neo-card" style={{ background: '#F4F4F5' }}>
+              <div className="neo-card-content">
+                <div className="neo-pill" style={{ background: '#A3E635', color: '#1D1D1F' }}>Persistent</div>
+                <h3 className="neo-subtitle" style={{ color: '#1D1D1F' }}>knowledge</h3>
+                <div className="neo-learn-more">
+                  <div className="neo-lm-circle" style={{ background: '#1D1D1F', color: '#FFF' }}>→</div>
+                  <span className="neo-lm-text" style={{ color: '#1D1D1F' }}>Learn more</span>
+                </div>
               </div>
-              <div style={{
-                width: '32px', height: '2px', background: '#0071E3',
-                borderRadius: '1px', margin: '20px 0 16px 0'
-              }} />
-              <h3 style={{ margin: '0 0 12px 0', fontSize: '20px', fontWeight: 600, color: '#1D1D1F', fontFamily: "'Inter', sans-serif" }}>
-                Permanent Memory
-              </h3>
-              <p style={{ margin: 0, fontSize: '15px', color: '#6E6E73', lineHeight: 1.7, fontFamily: "'Inter', sans-serif", flex: 1 }}>
-                Every architectural decision, bug fix, and team discussion stored forever in Parcle.
-              </p>
-              <div style={{ color: '#60A5FA', fontSize: '13px', fontWeight: 500, fontFamily: "'Inter', sans-serif", marginTop: '20px' }}>
-                Powered by Parcle →
+              <div className="neo-card-graphic">
+                <div style={{ position: 'relative', width: '90px', height: '90px', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: '80px', height: '24px', background: '#A855F7', border: '2px solid #1D1D1F', borderRadius: '6px', boxShadow: '4px 4px 0 #1D1D1F' }}></div>
+                  <div style={{ width: '80px', height: '24px', background: '#A3E635', border: '2px solid #1D1D1F', borderRadius: '6px', boxShadow: '4px 4px 0 #1D1D1F' }}></div>
+                  <div style={{ width: '80px', height: '24px', background: '#FFFFFF', border: '2px solid #1D1D1F', borderRadius: '6px', boxShadow: '4px 4px 0 #1D1D1F' }}></div>
+                </div>
               </div>
             </div>
           </ScrollFadeIn>
 
           {/* Card 2 */}
           <ScrollFadeIn delay={100}>
-            <div className="feat-card feat-card-2">
-              <div style={{
-                width: '56px', height: '56px',
-                borderRadius: '14px',
-                background: 'rgba(124,58,237,0.12)',
-                border: '1px solid rgba(124,58,237,0.2)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '28px'
-              }}>
-                ⚡
+            <div className="neo-card" style={{ background: '#A3E635' }}>
+              <div className="neo-card-content">
+                <div className="neo-pill" style={{ background: '#FFFFFF', color: '#1D1D1F' }}>Context-aware</div>
+                <h3 className="neo-subtitle" style={{ color: '#1D1D1F' }}>reasoning</h3>
+                <div className="neo-learn-more">
+                  <div className="neo-lm-circle" style={{ background: '#1D1D1F', color: '#FFF' }}>→</div>
+                  <span className="neo-lm-text" style={{ color: '#1D1D1F' }}>Learn more</span>
+                </div>
               </div>
-              <div style={{
-                width: '32px', height: '2px', background: '#7C3AED',
-                borderRadius: '1px', margin: '20px 0 16px 0'
-              }} />
-              <h3 style={{ margin: '0 0 12px 0', fontSize: '20px', fontWeight: 600, color: '#1D1D1F', fontFamily: "'Inter', sans-serif" }}>
-                Context-Aware Reasoning
-              </h3>
-              <p style={{ margin: 0, fontSize: '15px', color: '#6E6E73', lineHeight: 1.7, fontFamily: "'Inter', sans-serif", flex: 1 }}>
-                Before every response, the agent reads your entire project history.
-              </p>
-              <div style={{ color: '#A78BFA', fontSize: '13px', fontWeight: 500, fontFamily: "'Inter', sans-serif", marginTop: '20px' }}>
-                Powered by Claude →
+              <div className="neo-card-graphic">
+                <div style={{ width: '110px', height: '80px', background: '#1A1B1E', borderRadius: '8px', border: '2px solid #1D1D1F', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', boxShadow: '6px 6px 0 #1D1D1F' }}>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#FF5F56', border: '1px solid #1D1D1F' }}></div>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#FFBD2E', border: '1px solid #1D1D1F' }}></div>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#27C93F', border: '1px solid #1D1D1F' }}></div>
+                  </div>
+                  <div style={{ color: '#A3E635', fontFamily: 'monospace', fontSize: '16px', fontWeight: 'bold' }}>&gt; _</div>
+                </div>
               </div>
             </div>
           </ScrollFadeIn>
 
           {/* Card 3 */}
           <ScrollFadeIn delay={200}>
-            <div className="feat-card feat-card-3">
-              <div style={{
-                width: '56px', height: '56px',
-                borderRadius: '14px',
-                background: 'rgba(6,182,212,0.12)',
-                border: '1px solid rgba(6,182,212,0.2)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '28px'
-              }}>
-                🚫
+            <div className="neo-card" style={{ background: '#1A1B1E' }}>
+              <div className="neo-card-content">
+                <div className="neo-pill" style={{ background: '#A3E635', color: '#1D1D1F' }}>Autonomous</div>
+                <h3 className="neo-subtitle" style={{ color: '#FFFFFF' }}>execution</h3>
+                <div className="neo-learn-more">
+                  <div className="neo-lm-circle" style={{ background: '#FFFFFF', color: '#1D1D1F' }}>→</div>
+                  <span className="neo-lm-text" style={{ color: '#FFFFFF' }}>Learn more</span>
+                </div>
               </div>
-              <div style={{
-                width: '32px', height: '2px', background: '#06B6D4',
-                borderRadius: '1px', margin: '20px 0 16px 0'
-              }} />
-              <h3 style={{ margin: '0 0 12px 0', fontSize: '20px', fontWeight: 600, color: '#1D1D1F', fontFamily: "'Inter', sans-serif" }}>
-                Zero Conflicts
-              </h3>
-              <p style={{ margin: 0, fontSize: '15px', color: '#6E6E73', lineHeight: 1.7, fontFamily: "'Inter', sans-serif", flex: 1 }}>
-                New features never break old decisions. The agent remembers what you agreed on.
-              </p>
-              <div style={{ color: '#22D3EE', fontSize: '13px', fontWeight: 500, fontFamily: "'Inter', sans-serif", marginTop: '20px' }}>
-                Powered by Enter Pro →
+              <div className="neo-card-graphic">
+                <div style={{ width: '80px', height: '80px', background: '#A855F7', borderRadius: '16px', border: '2px solid #A3E635', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(163, 230, 53, 0.4)' }}>
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </ScrollFadeIn>
+
+          {/* Card 4 */}
+          <ScrollFadeIn delay={300}>
+            <div className="neo-card" style={{ background: '#F4F4F5' }}>
+              <div className="neo-card-content">
+                <div className="neo-pill" style={{ background: '#A855F7', color: '#FFFFFF' }}>Seamless</div>
+                <h3 className="neo-subtitle" style={{ color: '#1D1D1F' }}>integrations</h3>
+                <div className="neo-learn-more">
+                  <div className="neo-lm-circle" style={{ background: '#1D1D1F', color: '#FFF' }}>→</div>
+                  <span className="neo-lm-text" style={{ color: '#1D1D1F' }}>Learn more</span>
+                </div>
+              </div>
+              <div className="neo-card-graphic">
+                <div style={{ position: 'relative', width: '100px', height: '100px' }}>
+                  <div style={{ position: 'absolute', top: '48%', left: '15px', right: '15px', height: '4px', background: '#1D1D1F', zIndex: 1 }}></div>
+                  <div style={{ position: 'absolute', top: '25px', left: '48%', bottom: '25px', width: '4px', background: '#1D1D1F', zIndex: 1 }}></div>
+                  <div style={{ position: 'absolute', left: 0, top: '35px', width: '30px', height: '30px', borderRadius: '50%', background: '#A3E635', border: '2px solid #1D1D1F', zIndex: 2 }}></div>
+                  <div style={{ position: 'absolute', right: 0, top: '35px', width: '30px', height: '30px', borderRadius: '50%', background: '#A855F7', border: '2px solid #1D1D1F', zIndex: 2 }}></div>
+                  <div style={{ position: 'absolute', top: 0, left: '35px', width: '30px', height: '30px', borderRadius: '50%', background: '#FFFFFF', border: '2px solid #1D1D1F', zIndex: 2 }}></div>
+                  <div style={{ position: 'absolute', bottom: 0, left: '35px', width: '30px', height: '30px', borderRadius: '50%', background: '#1A1B1E', border: '2px solid #1D1D1F', zIndex: 2 }}></div>
+                </div>
               </div>
             </div>
           </ScrollFadeIn>
         </div>
-      </div>
 
-      {/* HOW IT WORKS SECTION */}
-      <div 
-        className={mounted ? 'animate-fade-up delay-400' : ''}
-        style={{
-          padding: '80px 24px',
-          maxWidth: '800px',
-          margin: '0 auto',
-          width: '100%',
-          boxSizing: 'border-box',
-          textAlign: 'center'
-        }}
-      >
-        <div style={{
-          color: '#0071E3',
-          fontFamily: "'Inter', sans-serif",
-          fontWeight: 600,
-          fontSize: '11px',
-          letterSpacing: '2px',
-          marginBottom: '16px'
-        }}>
-          THE PROCESS
-        </div>
-        
-        <h2 style={{
-          fontFamily: "'Inter', sans-serif",
-          fontWeight: 700,
-          fontSize: '40px',
-          color: '#1D1D1F',
-          margin: '0 0 56px 0'
-        }}>
-          From question to memory in seconds.
-        </h2>
-
-        <div className="timeline-container">
-          <div className="timeline-line" />
-          {[
-            { num: 1, title: "You ask", desc: "Type any task or question" },
-            { num: 2, title: "Memory searched", desc: "Parcle finds relevant past decisions" },
-            { num: 3, title: "Agent reasons", desc: "Claude uses context to respond", active: true },
-            { num: 4, title: "Saved forever", desc: "Decision stored back in Parcle" }
-          ].map((step, i) => (
-            <div key={i} className="timeline-step">
-              <div style={{
-                width: '48px', height: '48px',
-                borderRadius: '50%',
-                background: step.active ? 'rgba(0,113,227,0.2)' : 'rgba(0,0,0,0.04)',
-                border: step.active ? '1px solid #0071E3' : '1px solid rgba(255,255,255,0.1)',
-                boxShadow: step.active ? '0 0 20px rgba(0,113,227,0.3)' : 'none',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                marginBottom: '16px',
-                zIndex: 2, // Above the dashed line
-                position: 'relative'
-              }}>
-                <span style={step.active ? {
-                  color: '#60A5FA',
-                  fontWeight: 700, fontSize: '16px', fontFamily: "'Inter', sans-serif"
-                } : {
-                  background: 'linear-gradient(135deg, #1D1D1F 0%, #6E6E73 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  fontWeight: 700, fontSize: '16px', fontFamily: "'Inter', sans-serif"
-                }}>
-                  {step.num}
-                </span>
-              </div>
-              <h4 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 600, color: '#1D1D1F', fontFamily: "'Inter', sans-serif" }}>
-                {step.title}
-              </h4>
-              <p style={{ margin: 0, fontSize: '13px', color: '#6E6E73', fontWeight: 400, fontFamily: "'Inter', sans-serif", maxWidth: '160px' }}>
-                {step.desc}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* BOTTOM CTA SECTION */}
-      <div 
-        className={mounted ? 'animate-fade-up delay-500' : ''}
-        style={{
-          padding: '100px 24px',
-          textAlign: 'center',
-          position: 'relative',
-          width: '100%',
-          boxSizing: 'border-box'
-        }}
-      >
-        {/* Ambient Glow */}
-        <div style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '600px',
-          height: '400px',
-          background: 'radial-gradient(circle, rgba(0,113,227,0.08) 0%, transparent 70%)',
-          pointerEvents: 'none',
-          zIndex: 0
-        }} />
-
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <h2 
-            className="cta-title"
-            style={{
-              fontFamily: "'Inter', sans-serif",
-              fontWeight: 800,
-              fontSize: '56px',
-              lineHeight: 1.1,
-              letterSpacing: '-2px',
-              margin: '0 0 16px 0',
-              background: 'linear-gradient(135deg, #1D1D1F 0%, #60A5FA 50%, #A78BFA 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}
-          >
-            Your team's memory starts now.
-          </h2>
-
-          <p style={{
-            fontFamily: "'Inter', sans-serif",
-            fontWeight: 400,
-            fontSize: '18px',
-            color: '#6E6E73',
-            margin: '0 0 40px 0'
-          }}>
-            Every session. Every decision. Remembered forever.
-          </p>
-
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
-            <div className="primary-btn-wrapper">
-              <button
-                onClick={() => navigate('/app')}
-                className="hero-btn hero-btn-primary"
-                style={{
-                  padding: '18px 40px',
-                  fontSize: '18px'
-                }}
-              >
-                Start Building for Free <span style={{ transition: 'transform 0.2s', display: 'inline-block' }}>→</span>
-              </button>
-            </div>
-          </div>
-
-          <div style={{
-            fontFamily: "'Inter', sans-serif",
-            fontWeight: 400,
-            fontSize: '13px',
-            color: '#6E6E73'
-          }}>
-            No setup required · Free during hackathon
-          </div>
-        </div>
       </div>
 
       {/* FOOTER */}
       <footer style={{
         padding: '40px 24px',
-        background: 'rgba(0,0,0,0.15)',
-        borderTop: '1px solid rgba(0,0,0,0.06)',
+        background: '#F5F5F7',
+        borderTop: '1px solid rgba(0,0,0,0.05)',
         position: 'relative',
         zIndex: 10,
         marginTop: 'auto',
-        fontFamily: "'Inter', sans-serif"
+        fontFamily: "'Space Grotesk', sans-serif"
       }}>
         <div className="footer-content">
           {/* LEFT */}

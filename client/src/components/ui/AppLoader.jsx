@@ -13,7 +13,7 @@ export default function AppLoader({ message = 'Loading your memories…' }) {
       justifyContent: 'center',
       gap: 20,
       zIndex: 99999,
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+      fontFamily: "'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif",
     }}>
       {/* Animated brain icon */}
       <div
@@ -21,8 +21,8 @@ export default function AppLoader({ message = 'Loading your memories…' }) {
         style={{
           width: 56,
           height: 56,
-          borderRadius: 16,
-          background: 'linear-gradient(135deg, #0071E3, #00A3FF)',
+          borderRadius: 'var(--radius-card)',
+          background: '#A855F7',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -61,7 +61,7 @@ export default function AppLoader({ message = 'Loading your memories…' }) {
           className="loader-progress-bar"
           style={{
             height: '100%',
-            background: 'linear-gradient(90deg, #0071E3, #00A3FF)',
+            background: '#A3E635',
             borderRadius: 999,
             width: 0,
           }}

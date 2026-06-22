@@ -84,8 +84,8 @@ export default function KnowledgePage() {
   };
 
   return (
-    <div style={{ ...panelBase, flex: 1, overflowY: 'auto', padding: '40px 48px', background: '#F5F5F7' }}>
-      <div style={{ maxWidth: 840, margin: '0 auto' }}>
+    <div style={{ ...panelBase, gridColumn: 2, gridRow: '2 / 4', flex: 1, overflowY: 'auto', padding: '40px 48px', background: '#F5F5F7' }}>
+      <div style={{ }}>
         
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
@@ -105,7 +105,7 @@ export default function KnowledgePage() {
         {/* Global AI Search */}
         <div style={{ 
           background: 'linear-gradient(145deg, #1d1d1f 0%, #151516 100%)', 
-          borderRadius: 24, padding: '40px', marginBottom: 48, boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+          borderRadius: 'var(--radius-card)', padding: '40px', marginBottom: 48, boxShadow: 'var(--shadow-lg)',
           color: 'white'
         }}>
           <h3 style={{ margin: '0 0 12px', fontSize: 22, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 12, letterSpacing: '-0.5px' }}>
@@ -140,7 +140,7 @@ export default function KnowledgePage() {
           {/* Search Results Area */}
           {(isSearching || searchResult) && (
             <div style={{
-              marginTop: 32, padding: 24, background: 'rgba(0, 122, 255, 0.1)', borderRadius: 16,
+              marginTop: 32, padding: 24, background: 'rgba(0, 122, 255, 0.1)', borderRadius: 'var(--radius-card)',
               borderLeft: '4px solid #007aff'
             }}>
               {isSearching ? (
@@ -167,7 +167,7 @@ export default function KnowledgePage() {
         {loading ? (
           <div style={{ textAlign: 'center', padding: '40px', color: '#86868b' }}>Loading Knowledge Base...</div>
         ) : knowledgeList.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px', background: 'var(--white)', border: 'none', borderRadius: 20, boxShadow: '0 8px 30px rgba(0,0,0,0.04)' }}>
+          <div style={{ textAlign: 'center', padding: '60px', background: 'var(--white)', border: '2px solid var(--border)', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow-md)' }}>
             <span style={{ fontSize: 40 }}>📚</span>
             <h3 style={{ margin: '20px 0 8px', color: '#1d1d1f', fontSize: 20, fontWeight: 600 }}>No standards documented yet</h3>
             <p style={{ margin: 0, color: '#86868b' }}>Start building the team's knowledge base.</p>
@@ -185,8 +185,8 @@ export default function KnowledgePage() {
 
               return (
                 <div key={item.id} style={{
-                  background: 'var(--white)', border: 'none', borderRadius: 20,
-                  padding: 32, boxShadow: '0 8px 30px rgba(0,0,0,0.04)',
+                  background: 'var(--white)', border: '2px solid var(--border)', borderRadius: 'var(--radius-card)',
+                  padding: 32, boxShadow: 'var(--shadow-md)',
                   transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
                   display: 'flex', flexDirection: 'column'
                 }}>

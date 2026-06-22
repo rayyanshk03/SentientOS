@@ -294,7 +294,7 @@ export default function InputBar({
                   fontFamily: 'inherit',
                   fontWeight: 500,
                   fontSize: '12px',
-                  color: chatTag === 'Auto' ? '#8E8E93' : '#0071E3',
+                  color: chatTag === 'Auto' ? '#8E8E93' : '#A855F7',
                   cursor: 'pointer',
                   userSelect: 'none',
                 }}
@@ -441,7 +441,7 @@ export default function InputBar({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: isSendDisabled ? '#AEAEB2' : (sendHovered ? '#0A84FF' : '#0071E3'),
+                background: isSendDisabled ? '#AEAEB2' : (sendHovered ? '#A3E635' : '#A855F7'),
                 color: '#FFFFFF',
                 cursor: isSendDisabled ? 'not-allowed' : 'pointer',
                 transform: sendPressed && !isSendDisabled ? 'scale(0.92)' : (sendHovered && !isSendDisabled ? 'scale(1.05)' : 'scale(1)'),

@@ -8,7 +8,7 @@ import { MemoryGridSkeleton } from '../components/ui/Skeleton';
 
 const CATEGORIES = [
   { id: 'all',           label: 'All',                   icon: '🧠', color: '#6E6E73' },
-  { id: 'architecture',  label: 'Architecture Decision',  icon: '🏗️', color: '#0071E3' },
+  { id: 'architecture',  label: 'Architecture Decision',  icon: '🏗️', color: '#A855F7' },
   { id: 'bug_fix',       label: 'Bug Fix',                icon: '🐛', color: '#FF3B30' },
   { id: 'coding',        label: 'Coding Standard',        icon: '📐', color: '#AF52DE' },
   { id: 'deployment',    label: 'Deployment History',     icon: '🚀', color: '#FF9500' },
@@ -237,15 +237,15 @@ export default function MemoriesPage() {
 
       {/* Overview Stat Widgets */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
-        <div style={{ background: 'var(--white)', borderRadius: 16, padding: 24, boxShadow: '0 4px 24px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div style={{ background: 'var(--white)', borderRadius: 'var(--radius-card)', padding: 24, boxShadow: 'var(--shadow-md)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <span style={{ fontSize: 12, color: 'var(--gray-mid)', fontWeight: 600, letterSpacing: '0.5px' }}>Total Memories</span>
           <div style={{ fontSize: 36, fontWeight: 700, color: 'var(--black)', marginTop: 8 }}>{totalCount}</div>
         </div>
-        <div style={{ background: 'var(--white)', borderRadius: 16, padding: 24, boxShadow: '0 4px 24px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div style={{ background: 'var(--white)', borderRadius: 'var(--radius-card)', padding: 24, boxShadow: 'var(--shadow-md)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <span style={{ fontSize: 12, color: 'var(--gray-mid)', fontWeight: 600, letterSpacing: '0.5px' }}>Pinned</span>
-          <div style={{ fontSize: 36, fontWeight: 700, color: '#0071E3', marginTop: 8 }}>{pinnedCount}</div>
+          <div style={{ fontSize: 36, fontWeight: 700, color: '#A855F7', marginTop: 8 }}>{pinnedCount}</div>
         </div>
-        <div style={{ background: 'var(--white)', borderRadius: 16, padding: 24, boxShadow: '0 4px 24px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div style={{ background: 'var(--white)', borderRadius: 'var(--radius-card)', padding: 24, boxShadow: 'var(--shadow-md)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <span style={{ fontSize: 12, color: 'var(--gray-mid)', fontWeight: 600, letterSpacing: '0.5px' }}>Categories</span>
           <div style={{ fontSize: 36, fontWeight: 700, color: '#AF52DE', marginTop: 8 }}>{CATEGORIES.length - 1}</div>
         </div>
@@ -261,7 +261,7 @@ export default function MemoriesPage() {
               onClick={() => setActiveCategory(cat.id)}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6,
-                padding: '8px 16px', borderRadius: 20,
+                padding: '8px 16px', borderRadius: 'var(--radius-card)',
                 border: 'none',
                 background: isActive ? cat.color : 'var(--white)',
                 color: isActive ? 'var(--white)' : '#6E6E73',
@@ -279,7 +279,7 @@ export default function MemoriesPage() {
       </div>
 
       {/* Control bar (Search + Sort) */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--white)', padding: '12px 16px', borderRadius: 16, boxShadow: '0 4px 24px rgba(0,0,0,0.04)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--white)', padding: '12px 16px', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow-md)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, maxSelf: 'stretch', maxWidth: 480, position: 'relative' }}>
           <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#AEAEB2' }}>🔍</span>
           <input
@@ -288,7 +288,7 @@ export default function MemoriesPage() {
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             style={{
-              width: '100%', height: 40, border: 'none', borderRadius: 10,
+              width: '100%', height: 40, border: '2px solid var(--border)', borderRadius: 10,
               padding: '0 16px 0 40px', fontSize: 14, outline: 'none', background: '#F5F5F7', color: 'var(--black)'
             }}
           />
@@ -398,9 +398,9 @@ export default function MemoriesPage() {
                 className={`memory-card-enter${exitingId === m.id ? ' memory-card-exit' : ''}`}
                 style={{
                   '--card-delay': `${Math.min(cardIdx, 12) * 50}ms`,
-                  background: 'var(--white)', borderRadius: 20, padding: 24,
+                  background: 'var(--white)', borderRadius: 'var(--radius-card)', padding: 24,
                   display: 'flex', flexDirection: 'column', gap: 12, position: 'relative',
-                  boxShadow: '0 8px 30px rgba(0,0,0,0.04)',
+                  boxShadow: 'var(--shadow-md)',
                   border: '1px solid rgba(0,0,0,0.02)',
                   transition: 'transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.25s cubic-bezier(0.25, 0.8, 0.25, 1)',
                   cursor: isEditing ? 'default' : 'pointer',
@@ -498,7 +498,7 @@ export default function MemoriesPage() {
       {/* Delete confirmation modal */}
       {deletingId && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: 'var(--white)', borderRadius: 16, padding: 24, width: 340, display: 'flex', flexDirection: 'column', gap: 16, boxShadow: 'var(--shadow-lg)' }}>
+          <div style={{ background: 'var(--white)', borderRadius: 'var(--radius-card)', padding: 24, width: 340, display: 'flex', flexDirection: 'column', gap: 16, boxShadow: 'var(--shadow-lg)' }}>
             <span style={{ fontWeight: 700, fontSize: 15, color: '#FF3B30' }}>Delete Decision Rule?</span>
             <div style={{ fontSize: 13, color: 'var(--gray-mid)', lineHeight: 1.5 }}>
               This will remove this rule completely from the memory vault. The AI agent might contradict this rule in future.

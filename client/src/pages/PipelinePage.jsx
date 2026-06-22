@@ -197,7 +197,7 @@ export default function PipelinePage() {
         <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 24 }}>
         
         {/* Left Side: Pipeline Steps visual */}
-        <div style={{ background: 'var(--white)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: 16, padding: 24, boxShadow: '0 8px 30px rgba(0,0,0,0.04)' }}>
+        <div style={{ background: 'var(--white)', border: '2px solid var(--border)', borderRadius: 'var(--radius-card)', padding: 24, boxShadow: 'var(--shadow-md)' }}>
           <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--black)', marginBottom: 16 }}>Agent Workflow Status</h2>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20, position: 'relative' }}>
@@ -254,7 +254,7 @@ export default function PipelinePage() {
         </div>
 
         {/* Right Side: Step logs and description details */}
-        <div style={{ flex: 1, background: '#111214', display: 'flex', flexDirection: 'column', borderRadius: 16, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 16px 40px rgba(0,0,0,0.2)' }}>
+        <div style={{ flex: 1, background: '#111214', display: 'flex', flexDirection: 'column', borderRadius: 'var(--radius-card)', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', boxShadow: 'var(--shadow-lg)' }}>
           <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.08)', background: '#1A1C20', color: '#8b949e', fontSize: 12, fontFamily: 'monospace', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
               <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#FF5F56' }} />
@@ -290,7 +290,7 @@ export default function PipelinePage() {
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
         border: '1px solid rgba(255,255,255,0.5)', 
-        borderRadius: 20, 
+        borderRadius: 'var(--radius-card)', 
         padding: 32,
         boxShadow: '0 8px 32px rgba(31, 38, 135, 0.07)'
       }}>
@@ -315,7 +315,7 @@ export default function PipelinePage() {
               style={{
                 background: btn.color,
                 color: 'white',
-                border: 'none',
+                border: '2px solid var(--border)',
                 padding: '10px 18px',
                 borderRadius: '50px',
                 fontSize: 13,

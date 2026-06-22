@@ -197,7 +197,7 @@ export default function DemoPage() {
 
 
   return (
-    <div style={{ ...panelBase, display: 'flex', flexDirection: 'row', height: '100%' }}>
+    <div style={{ ...panelBase, gridColumn: 2, gridRow: '2 / 4', display: 'flex', flexDirection: 'row', height: '100%' }}>
       
       {/* LEFT PANEL: Controls */}
       <div style={{ 

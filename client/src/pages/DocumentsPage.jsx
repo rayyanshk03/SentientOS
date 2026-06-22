@@ -51,7 +51,7 @@ export default function DocumentsPage() {
         background: '#F5F5F7',
       }}
     >
-      <div style={{ maxWidth: 840, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 32, width: '100%' }}>
+      <div style={{ gridColumn: 2, gridRow: '2 / 4', display: 'flex', flexDirection: 'column', gap: 32, width: '100%' }}>
       
         {/* Header */}
         <div>
@@ -63,13 +63,13 @@ export default function DocumentsPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
         
         {/* Upload card */}
-        <div style={{ background: 'var(--white)', border: 'none', borderRadius: 20, padding: 32, boxShadow: '0 8px 30px rgba(0,0,0,0.04)' }}>
+        <div style={{ background: 'var(--white)', border: '2px solid var(--border)', borderRadius: 'var(--radius-card)', padding: 32, boxShadow: 'var(--shadow-md)' }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, color: '#1d1d1f', marginBottom: 20, letterSpacing: '-0.5px' }}>Upload New Documents</h2>
           <UploadZone activeProject={activeProject} onUploadSuccess={handleUploadSuccess} />
         </div>
 
         {/* Database List */}
-        <div style={{ background: 'var(--white)', border: 'none', borderRadius: 20, padding: 32, boxShadow: '0 8px 30px rgba(0,0,0,0.04)' }}>
+        <div style={{ background: 'var(--white)', border: '2px solid var(--border)', borderRadius: 'var(--radius-card)', padding: 32, boxShadow: 'var(--shadow-md)' }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, color: '#1d1d1f', marginBottom: 20, letterSpacing: '-0.5px' }}>Indexed Documents Cache</h2>
           
           {isLoading ? (
@@ -96,7 +96,7 @@ export default function DocumentsPage() {
               <button
                 onClick={() => document.querySelector('input[type="file"]')?.click()}
                 style={{
-                  background: 'var(--blue)', color: 'var(--white)', border: 'none',
+                  background: 'var(--blue)', color: 'var(--white)', border: '2px solid var(--border)',
                   padding: '8px 16px', borderRadius: 'var(--radius-pill)',
                   fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'var(--transition)'
                 }}

@@ -201,8 +201,8 @@ export default function ConfigurationPage() {
           zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>
           <div style={{
-            background: '#FFFFFF', borderRadius: 16, padding: '24px 20px', width: 340, maxWidth: '90vw',
-            boxShadow: '0 8px 40px rgba(0,0,0,0.12)', display: 'flex', flexDirection: 'column', gap: 16
+            background: '#FFFFFF', borderRadius: 'var(--radius-card)', padding: '24px 20px', width: 340, maxWidth: '90vw',
+            boxShadow: 'var(--shadow-lg)', display: 'flex', flexDirection: 'column', gap: 16
           }}>
             <span style={{ fontWeight: 700, fontSize: 15, color: '#FF3B30' }}>Clear all memories?</span>
             <div style={{ fontSize: 13, color: 'var(--gray-mid)', lineHeight: 1.5 }}>
@@ -222,8 +222,8 @@ export default function ConfigurationPage() {
           zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>
           <div style={{
-            background: '#FFFFFF', borderRadius: 16, padding: '24px 20px', width: 340, maxWidth: '90vw',
-            boxShadow: '0 8px 40px rgba(0,0,0,0.12)', display: 'flex', flexDirection: 'column', gap: 16
+            background: '#FFFFFF', borderRadius: 'var(--radius-card)', padding: '24px 20px', width: 340, maxWidth: '90vw',
+            boxShadow: 'var(--shadow-lg)', display: 'flex', flexDirection: 'column', gap: 16
           }}>
             <span style={{ fontWeight: 700, fontSize: 15, color: '#FF3B30' }}>Reset identity profile?</span>
             <div style={{ fontSize: 13, color: 'var(--gray-mid)', lineHeight: 1.5 }}>

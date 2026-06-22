@@ -71,8 +71,8 @@ export default function LLMSettingsPage() {
           variant="primary" 
           onClick={handleSave}
           style={{
-            background: 'linear-gradient(135deg, #0071E3 0%, #0A84FF 100%)',
-            border: 'none',
+            background: '#A855F7',
+            border: '2px solid var(--border)',
             borderRadius: '980px',
             padding: '10px 20px',
             fontSize: '14px',
@@ -89,7 +89,7 @@ export default function LLMSettingsPage() {
         <div style={{
           background: 'var(--white)', color: 'var(--black)', padding: '12px 20px', borderRadius: '16px',
           position: 'fixed', bottom: 32, right: 32, zIndex: 1000, 
-          boxShadow: '0 8px 30px rgba(0,0,0,0.12)', border: '1px solid rgba(0,0,0,0.05)',
+          boxShadow: '0 8px 30px rgba(0,0,0,0.12)', border: '2px solid var(--border)',
           fontSize: 14, fontWeight: 600, animation: 'toastSlideIn 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
           display: 'flex', alignItems: 'center', gap: 10
         }}>
@@ -98,7 +98,7 @@ export default function LLMSettingsPage() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 32, alignItems: 'start', maxWidth: 1200 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 32, alignItems: 'start', width: '100%'}}>
         
         {/* Left Side: Parameters Form (Apple Grouped Layout) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
@@ -106,7 +106,7 @@ export default function LLMSettingsPage() {
           {/* Foundation Model */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--gray-mid)', textTransform: 'uppercase', letterSpacing: '0.5px', marginLeft: 16 }}>Foundation Model</label>
-            <div style={{ background: 'var(--white)', border: '1px solid rgba(0,0,0,0.04)', borderRadius: 24, padding: '8px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+            <div style={{ background: 'var(--white)', border: '2px solid var(--border)', borderRadius: 'var(--radius-card)', padding: '8px', boxShadow: 'var(--shadow-md)' }}>
               {[
                 { id: 'Gemini', label: 'Gemini', desc: 'Google Gemini (Flash)' },
                 { id: 'Groq', label: 'Groq', desc: 'Llama 3.1 8B via Groq' },
@@ -121,7 +121,7 @@ export default function LLMSettingsPage() {
                     borderBottom: idx === 2 ? 'none' : '1px solid rgba(0,0,0,0.04)',
                     cursor: 'pointer',
                     background: model === opt.id ? 'var(--gray-light)' : 'transparent',
-                    borderRadius: 16,
+                    borderRadius: 'var(--radius-card)',
                     transition: 'background 0.2s ease',
                   }}
                 >
@@ -141,7 +141,7 @@ export default function LLMSettingsPage() {
           {/* Core Directives */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--gray-mid)', textTransform: 'uppercase', letterSpacing: '0.5px', marginLeft: 16 }}>System Prompts & Behavior</label>
-            <div style={{ background: 'var(--white)', border: '1px solid rgba(0,0,0,0.04)', borderRadius: 24, padding: '24px 24px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', display: 'flex', flexDirection: 'column', gap: 24 }}>
+            <div style={{ background: 'var(--white)', border: '2px solid var(--border)', borderRadius: 'var(--radius-card)', padding: '24px 24px', boxShadow: 'var(--shadow-md)', display: 'flex', flexDirection: 'column', gap: 24 }}>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -172,7 +172,7 @@ export default function LLMSettingsPage() {
                   onChange={e => setSystemPrompt(e.target.value)}
                   rows={4}
                   style={{
-                    padding: '16px', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 16,
+                    padding: '16px', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 'var(--radius-card)',
                     fontSize: 14.5, outline: 'none', background: 'var(--chat-bg)', color: 'var(--black)',
                     resize: 'none', lineHeight: 1.5, fontFamily: 'inherit',
                     boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)',
@@ -190,13 +190,13 @@ export default function LLMSettingsPage() {
         {/* Right Side: Parameter Info */}
         <div style={{ 
           background: 'var(--white)', 
-          border: '1px solid rgba(0,0,0,0.04)', 
-          borderRadius: 24, 
+          border: '2px solid var(--border)', 
+          borderRadius: 'var(--radius-card)', 
           padding: 32, 
           display: 'flex', 
           flexDirection: 'column', 
           gap: 20,
-          boxShadow: '0 4px 20px rgba(0,0,0,0.03)'
+          boxShadow: 'var(--shadow-md)'
         }}>
           <h2 style={{ fontSize: 18, fontWeight: 600, color: 'var(--black)', margin: 0 }}>Parameter Guidelines</h2>
           

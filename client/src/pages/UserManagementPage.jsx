@@ -86,7 +86,7 @@ export default function UserManagementPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <div style={{
                 width: 56, height: 56, borderRadius: '50%',
-                background: 'linear-gradient(135deg, #0071E3 0%, #00A3FF 100%)',
+                background: '#A855F7',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: '#FFFFFF', fontWeight: 700, fontSize: 18
               }}>

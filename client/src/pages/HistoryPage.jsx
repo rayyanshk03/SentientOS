@@ -48,9 +48,9 @@ export default function HistoryPage() {
         onClick={() => handleSelect(s.sessionId)}
         style={{
           background: isActive ? '#ffffff' : '#ffffff',
-          border: 'none',
+          border: '2px solid var(--border)',
           boxShadow: isActive ? '0 12px 40px rgba(0,122,255,0.12)' : '0 8px 30px rgba(0,0,0,0.04)',
-          borderRadius: 20,
+          borderRadius: 'var(--radius-card)',
           padding: '24px',
           cursor: 'pointer',
           display: 'flex',
@@ -103,7 +103,7 @@ export default function HistoryPage() {
         background: '#F5F5F7',
       }}
     >
-      <div style={{ maxWidth: 840, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 32, width: '100%' }}>
+      <div style={{ gridColumn: 2, gridRow: '2 / 4', display: 'flex', flexDirection: 'column', gap: 32, width: '100%' }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
@@ -120,7 +120,7 @@ export default function HistoryPage() {
             style={{
               background: '#1d1d1f',
               color: '#ffffff',
-              border: 'none',
+              border: '2px solid var(--border)',
               borderRadius: 99,
               padding: '10px 20px',
               fontSize: 14,
@@ -136,7 +136,7 @@ export default function HistoryPage() {
         </div>
 
         {sessions.length === 0 ? (
-          <div style={{ padding: '80px 0', textAlign: 'center', color: '#86868b', background: '#ffffff', borderRadius: 20, border: 'none', boxShadow: '0 8px 30px rgba(0,0,0,0.04)' }}>
+          <div style={{ padding: '80px 0', textAlign: 'center', color: '#86868b', background: '#ffffff', borderRadius: 'var(--radius-card)', border: '2px solid var(--border)', boxShadow: 'var(--shadow-md)' }}>
             <span style={{ fontSize: 40 }}>💬</span>
             <h3 style={{ margin: '16px 0 8px 0', fontSize: 18, fontWeight: 600, color: '#1d1d1f' }}>No past conversation history</h3>
             <p style={{ fontSize: 14, margin: 0 }}>Start asking the system orchestrator questions to see session histories here</p>

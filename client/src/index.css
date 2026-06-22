@@ -2,21 +2,22 @@
 
 /* ─── Design System — CSS Variables ────────────────────────────────────────── */
 :root {
-  /* Core palette (Premium Apple Light Theme) */
-  --blue:        #0071E3;
-  --blue-hover:  #0077ED;
-  --blue-light:  rgba(0,113,227,0.12);
+  /* Core palette (RealChain Neubrutalism Theme) */
+  --blue:        #A855F7;
+  --blue-hover:  #9333EA;
+  --blue-light:  rgba(168,85,247,0.12);
+  --lime:        #A3E635;
   --black:       #1D1D1F;
   --gray-dark:   #3D3D3F;
-  --gray-mid:    #86868B;
-  --gray-light:  #F5F5F7;
+  --gray-mid:    #6E6E73;
+  --gray-light:  #F8FAFC;
   --white:       #FFFFFF;
-  --border:      rgba(0,0,0,0.06);
+  --border:      #1D1D1F;
 
   /* Shadows */
-  --shadow-sm:   0 2px 8px rgba(0,0,0,0.04);
-  --shadow-md:   0 8px 24px rgba(0,0,0,0.06);
-  --shadow-lg:   0 16px 40px rgba(0,0,0,0.08);
+  --shadow-sm:   0 2px 0 #1D1D1F;
+  --shadow-md:   0 4px 0 #1D1D1F;
+  --shadow-lg:   0 8px 0 #1D1D1F;
 
   /* Spacing System */
   --space-4:     4px;
@@ -31,11 +32,11 @@
   --space-64:    64px;
 
   /* Border radii (New System) */
-  --radius-button: 980px;
-  --radius-card:   20px;
-  --radius-input:  24px;
-  --radius-bubble: 20px;
-  --radius-chip:   980px;
+  --radius-button: 16px;
+  --radius-card:   24px;
+  --radius-input:  16px;
+  --radius-bubble: 16px;
+  --radius-chip:   16px;
   --radius-modal:  24px;
 
   /* Legacy Border radii (Keep for fallback during transition) */
@@ -45,7 +46,7 @@
   --radius-pill: 999px;
 
   /* Typography */
-  --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
 
   /* Transitions */
   --transition: all 0.2s ease;
@@ -65,7 +66,7 @@
 
 [data-theme="dark"] {
   /* Core palette overrides */
-  --blue:        #0A84FF;
+  --blue:        #A3E635;
   --blue-hover:  #409CFF;
   --blue-light:  rgba(10,132,255,0.18);
   --black:       #F5F5F7;
@@ -96,19 +97,19 @@
 }
 
 [data-theme="light"] {
-  /* Semantic surface tokens (light - Premium Apple Starlight Theme) */
-  --navbar-bg:        rgba(251, 251, 249, 0.75);
-  --sidebar-bg:       #F4F3EF;
-  --chat-bg:          #FBFBF9;
+  /* Semantic surface tokens (light - RealChain Theme) */
+  --navbar-bg:        #FFFFFF;
+  --sidebar-bg:       #FAFAFA;
+  --chat-bg:          #F8FAFC;
   --card-bg:          #FFFFFF;
   --input-bg:         #FFFFFF;
-  --bubble-user-bg:   #0071E3;
+  --bubble-user-bg:   #A3E635; /* Lime green for user bubbles */
   --bubble-agent-bg:  #FFFFFF;
-  --code-bg:          #1E1E1E;
+  --code-bg:          #1A1B1E;
   --code-border:      transparent;
-  --dropdown-bg:      rgba(255,255,255,0.92);
+  --dropdown-bg:      #FFFFFF;
   --modal-bg:         #FFFFFF;
-  --modal-backdrop:   rgba(0,0,0,0.30);
+  --modal-backdrop:   rgba(0,0,0,0.60);
 }
 /* ─── Reset ─────────────────────────────────────────────────────────────────── */
 *, *::before, *::after {
@@ -271,7 +272,7 @@ button, a, input, textarea, select, [role="button"] {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #0071E3;
+  background: #A855F7;
   display: inline-block;
   flex-shrink: 0;
   animation: dotPulse 1s ease-in-out infinite;
@@ -339,9 +340,7 @@ button, a, input, textarea, select, [role="button"] {
   grid-area: navbar;
   height: 56px;
   background: var(--navbar-bg);
-  backdrop-filter: blur(24px) saturate(200%);
-  -webkit-backdrop-filter: blur(24px) saturate(200%);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 2px solid var(--border);
   padding: 0 24px;
   position: sticky;
   top: 0;
@@ -370,9 +369,7 @@ button, a, input, textarea, select, [role="button"] {
   grid-area: inputbar;
   height: auto;
   background: var(--navbar-bg);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border-top: 1px solid var(--border);
+  border-top: 2px solid var(--border);
   padding: 12px 20px 16px 20px;
   z-index: 90;
   transition: background 0.3s ease, border-color 0.3s ease;

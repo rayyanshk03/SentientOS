@@ -80,8 +80,8 @@ export default function AdrsPage() {
   };
 
   return (
-    <div style={{ ...panelBase, flex: 1, overflowY: 'auto', padding: '40px 48px', background: '#F5F5F7' }}>
-      <div style={{ maxWidth: 840, margin: '0 auto' }}>
+    <div style={{ ...panelBase, gridColumn: 2, gridRow: '2 / 4', flex: 1, overflowY: 'auto', padding: '40px 48px', background: '#F5F5F7' }}>
+      <div style={{ }}>
         
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
@@ -110,18 +110,20 @@ export default function AdrsPage() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 32, position: 'relative' }}>
             {/* Vertical timeline line */}
-            <div style={{ position: 'absolute', left: 19, top: 20, bottom: 20, width: 2, background: '#E5E5EA', zIndex: 1 }} />
+            <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: 20, bottom: 20, width: 2, background: '#E5E5EA', zIndex: 1 }} />
             
-            {adrs.map(adr => {
+            {adrs.map((adr, index) => {
+              const isLeft = index % 2 === 0;
               const dateObj = new Date(adr.timestamp);
               const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
               const isExplaining = explainingId === adr.id;
               const explanation = explanations[adr.id];
 
               return (
-                <div key={adr.id} style={{ display: 'flex', gap: 24, position: 'relative' }}>
+                <div key={adr.id} style={{ display: 'flex', width: '100%', justifyContent: isLeft ? 'flex-start' : 'flex-end', position: 'relative' }}>
                   {/* Timeline Dot */}
                   <div style={{
+                    position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: 0,
                     width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #007aff 0%, #0051a8 100%)', color: 'white',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0,
                     boxShadow: '0 4px 12px rgba(0, 122, 255, 0.3), 0 0 0 6px #F5F5F7', zIndex: 2
@@ -131,8 +133,9 @@ export default function AdrsPage() {
 
                   {/* ADR Card */}
                   <div style={{
-                    background: 'var(--white)', border: 'none', borderRadius: 20,
-                    padding: 32, flex: 1, boxShadow: '0 8px 30px rgba(0,0,0,0.04)',
+                    width: 'calc(50% - 48px)',
+                    background: 'var(--white)', border: '2px solid var(--border)', borderRadius: 'var(--radius-card)',
+                    padding: 32, boxShadow: 'var(--shadow-md)',
                     transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
                     position: 'relative', zIndex: 2
                   }}>
@@ -160,10 +163,10 @@ export default function AdrsPage() {
                     {/* AI Explanation Area */}
                     {explanation && (
                       <div style={{
-                        marginTop: 20, padding: 20, background: 'rgba(0, 113, 227, 0.04)', borderRadius: 16,
-                        borderLeft: '4px solid #0071E3'
+                        marginTop: 20, padding: 20, background: 'rgba(0, 113, 227, 0.04)', borderRadius: 'var(--radius-card)',
+                        borderLeft: '4px solid #A855F7'
                       }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: '#0071E3', textTransform: 'uppercase', marginBottom: 10, letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: '#A855F7', textTransform: 'uppercase', marginBottom: 10, letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: 6 }}>
                           ✨ AI Explanation
                         </div>
                         <div style={{ fontSize: 14.5, lineHeight: 1.6, color: '#1d1d1f' }}>

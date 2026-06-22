@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Button from './Button';
 
 const CATEGORY_META = {
-  'Architecture Decision':  { icon: '🏗️', color: '#0071E3' },
+  'Architecture Decision':  { icon: '🏗️', color: '#A855F7' },
   'Bug Fix':                { icon: '🐛', color: '#FF3B30' },
   'Coding Standard':        { icon: '📐', color: '#AF52DE' },
   'Deployment History':     { icon: '🚀', color: '#FF9500' },
@@ -55,7 +55,7 @@ export default function MemoryPreviewModal({ extraction, onSave, onSkip, isSavin
     >
       <div
         style={{
-          background: 'var(--white)', borderRadius: 20,
+          background: 'var(--white)', borderRadius: 'var(--radius-card)',
           width: '100%', maxWidth: 520,
           boxShadow: '0 32px 80px rgba(0,0,0,0.25)',
           transform: `translateY(${visible ? 0 : 24}px)`,
@@ -85,7 +85,7 @@ export default function MemoryPreviewModal({ extraction, onSave, onSkip, isSavin
             <button
               onClick={onSkip}
               style={{
-                background: 'var(--gray-light)', border: 'none', borderRadius: 8,
+                background: 'var(--gray-light)', border: '2px solid var(--border)', borderRadius: 8,
                 color: 'var(--gray-mid)', fontSize: 16, cursor: 'pointer',
                 width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 transition: 'background 0.15s',

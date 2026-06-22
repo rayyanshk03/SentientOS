@@ -66,14 +66,15 @@ export default function Navbar({
             style={{
               width: 30,
               height: 30,
-              background: 'linear-gradient(135deg, #0071E3 0%, #0051a8 100%)',
+              background: '#A855F7',
+              border: '2px solid #1D1D1F',
               borderRadius: '8px',
               padding: '6px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: '#FFFFFF',
-              boxShadow: '0 4px 12px rgba(0, 113, 227, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.4)',
+              boxShadow: '2px 2px 0 #1D1D1F',
             }}
           >
             <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -126,7 +127,7 @@ export default function Navbar({
               fontWeight: 600,
               background: isDemoRunning ? '#FF3B30' : '#FFFFFF',
               color: isDemoRunning ? '#FFF' : '#1d1d1f',
-              border: 'none',
+              border: '2px solid var(--border)',
               borderRadius: '980px',
               cursor: 'pointer',
               fontFamily: 'inherit',
@@ -157,7 +158,7 @@ export default function Navbar({
               fontSize: '13px',
               fontWeight: 600,
               background: 'transparent',
-              border: 'none',
+              border: '2px solid var(--border)',
               borderRadius: '980px',
               color: '#515154',
               cursor: 'pointer',
@@ -181,7 +182,7 @@ export default function Navbar({
               alignItems: 'center',
               justifyContent: 'center',
               background: 'transparent',
-              border: 'none',
+              border: '2px solid var(--border)',
               borderRadius: '50%',
               color: '#86868b',
               fontSize: 14,
@@ -206,7 +207,7 @@ export default function Navbar({
               alignItems: 'center',
               justifyContent: 'center',
               background: 'transparent',
-              border: 'none',
+              border: '2px solid var(--border)',
               borderRadius: '50%',
               color: '#86868b',
               cursor: 'pointer',
@@ -255,23 +256,7 @@ export default function Navbar({
 
         {/* Profile Group */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* Memory Count Pill */}
-          <div
-            style={{
-              background: 'rgba(0, 113, 227, 0.08)',
-              color: '#0071E3',
-              borderRadius: '980px',
-              padding: '6px 12px',
-              fontWeight: 700,
-              fontSize: '13px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.5)',
-            }}
-          >
-            <span style={{ filter: 'drop-shadow(0 2px 4px rgba(0,113,227,0.2))' }}>🧠</span> {totalMemories}
-          </div>
+          {/* Memory Count Pill Removed */}
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
                onMouseEnter={e => e.currentTarget.lastChild.style.transform = 'scale(1.05)'}
@@ -287,15 +272,16 @@ export default function Navbar({
                 width: 36,
                 height: 36,
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, #0071E3 0%, #0051a8 100%)',
-                color: '#FFFFFF',
+                background: '#A3E635',
+                border: '2px solid #1D1D1F',
+                color: '#1D1D1F',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: '14px',
                 fontWeight: 700,
                 transition: 'transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1)',
-                boxShadow: '0 4px 12px rgba(0, 113, 227, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.4)',
+                boxShadow: '2px 2px 0 #1D1D1F',
               }}
             >
               {identity?.name 
