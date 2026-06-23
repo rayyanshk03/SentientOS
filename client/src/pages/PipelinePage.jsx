@@ -202,7 +202,7 @@ export default function PipelinePage() {
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20, position: 'relative' }}>
             {/* Visual connector line */}
-            <div style={{ position: 'absolute', left: 15, top: 12, bottom: 12, width: 2, background: 'var(--border)', zIndex: 0 }} />
+            <div style={{ position: 'absolute', left: 28, top: 12, bottom: 12, width: 2, background: 'var(--border)', zIndex: 0 }} />
 
             {steps.map((step, idx) => {
               const isActive = activeStep === idx;

@@ -23,7 +23,9 @@ export default function AdrsPage() {
 
   // Delete State
   const [deletingId, setDeletingId] = useState(null);
-  const [viewingAdr, setViewingAdr] = useState(null);
+
+  // View Details State
+  const [selectedAdr, setSelectedAdr] = useState(null);
 
   useEffect(() => {
     fetchAdrs();
@@ -149,16 +151,14 @@ export default function AdrsPage() {
 
                   {/* ADR Card */}
                   <div 
-                    onClick={() => setViewingAdr(adr)}
+                    onClick={() => setSelectedAdr(adr)}
                     style={{
-                      width: 'calc(50% - 48px)',
-                      background: 'var(--white)', border: '2px solid var(--border)', borderRadius: 'var(--radius-card)',
-                      padding: 32, boxShadow: 'var(--shadow-md)',
-                      transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
-                      position: 'relative', zIndex: 2,
-                      cursor: 'pointer'
-                    }}
-                  >
+                    width: 'calc(50% - 48px)',
+                    background: 'var(--white)', border: '2px solid var(--border)', borderRadius: 'var(--radius-card)',
+                    padding: 32, boxShadow: 'var(--shadow-md)',
+                    transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+                    position: 'relative', zIndex: 2, cursor: 'pointer'
+                  }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16, flexWrap: 'wrap', gap: 16 }}>
                       <div style={{ flex: '1 1 min-content' }}>
                         <h3 style={{ margin: '0 0 10px', fontSize: 20, fontWeight: 700, color: '#1d1d1f', letterSpacing: '-0.5px' }}>{adr.title}</h3>
@@ -168,6 +168,11 @@ export default function AdrsPage() {
                       </div>
                       
                       <div style={{ flexShrink: 0, display: 'flex', gap: 8 }}>
+                        {!explanation && (
+                          <Button variant="ghost" onClick={(e) => { e.stopPropagation(); handleExplain(adr); }} disabled={isExplaining}>
+                            {isExplaining ? 'Thinking...' : '✨ Explain Why'}
+                          </Button>
+                        )}
                         <button 
                           onClick={(e) => { e.stopPropagation(); setDeletingId(adr.id); }} 
                           style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#ff3b30', opacity: 0.7, padding: '8px' }} 
@@ -181,6 +186,21 @@ export default function AdrsPage() {
                     <p style={{ margin: '0 0 16px', fontSize: 15, lineHeight: 1.6, color: '#515154' }}>
                       {adr.description}
                     </p>
+
+                    {/* AI Explanation Area */}
+                    {explanation && (
+                      <div style={{
+                        marginTop: 20, padding: 20, background: 'rgba(0, 113, 227, 0.04)', borderRadius: 'var(--radius-card)',
+                        borderLeft: '4px solid #A855F7'
+                      }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: '#A855F7', textTransform: 'uppercase', marginBottom: 10, letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                          ✨ AI Explanation
+                        </div>
+                        <div style={{ fontSize: 14.5, lineHeight: 1.6, color: '#1d1d1f' }}>
+                          <ReactMarkdown>{explanation}</ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -188,6 +208,25 @@ export default function AdrsPage() {
           </div>
         )}
       </div>
+
+      {/* View Details Modal */}
+      <Modal open={!!selectedAdr} onClose={() => setSelectedAdr(null)} title={selectedAdr ? selectedAdr.title : ''}>
+        {selectedAdr && (
+          <div style={{ padding: '16px 0' }}>
+            <div style={{ display: 'flex', gap: 8, fontSize: 13, color: '#86868b', fontWeight: 500, marginBottom: 24 }}>
+              <span style={{ background: '#F5F5F7', padding: '4px 10px', borderRadius: 12 }}>📅 {new Date(selectedAdr.timestamp).toLocaleDateString()}</span>
+              <span style={{ background: '#F5F5F7', padding: '4px 10px', borderRadius: 12 }}>👤 {selectedAdr.author}</span>
+            </div>
+            <div style={{ fontSize: 15, lineHeight: 1.6, color: '#1d1d1f' }} className="markdown-body">
+              {selectedAdr.content ? (
+                <ReactMarkdown>{selectedAdr.content}</ReactMarkdown>
+              ) : (
+                <p>{selectedAdr.description}</p>
+              )}
+            </div>
+          </div>
+        )}
+      </Modal>
 
       {/* Create ADR Modal */}
       <Modal open={isCreateOpen} onClose={() => !isCreating && setIsCreateOpen(false)} title="Create Architecture Decision">
@@ -260,31 +299,6 @@ export default function AdrsPage() {
             <Button variant="primary" onClick={handleCreate} loading={isCreating} disabled={!formData.decisionName || !formData.solution}>
               Save ADR
             </Button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* View Full Architecture Modal */}
-      <Modal open={!!viewingAdr} onClose={() => setViewingAdr(null)} title={viewingAdr?.title || "Architecture Decision"}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ fontSize: 14, color: '#86868b', fontWeight: 500 }}>
-            {viewingAdr && new Date(viewingAdr.timestamp).toLocaleDateString()}
-          </div>
-          <div style={{ 
-            fontSize: 14.5, 
-            lineHeight: 1.6, 
-            color: '#1d1d1f',
-            background: '#F5F5F7',
-            padding: 20,
-            borderRadius: 'var(--radius-card)',
-            whiteSpace: 'pre-wrap',
-            maxHeight: '60vh',
-            overflowY: 'auto'
-          }}>
-            <ReactMarkdown>{viewingAdr?.content || "*No detailed context available for this architecture decision.*"}</ReactMarkdown>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button variant="ghost" onClick={() => setViewingAdr(null)}>Close</Button>
           </div>
         </div>
       </Modal>

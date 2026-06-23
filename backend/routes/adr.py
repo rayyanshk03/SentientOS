@@ -104,20 +104,21 @@ async def get_adrs(limit: int = 50):
             title = tag.get("title") or s.get("title") or "Unnamed Decision"
             description = tag.get("description", "A documented architecture decision.")
             
+            content = ""
+            if cols and "memories" in cols:
+                import asyncio
+                doc = await asyncio.to_thread(cols["memories"].find_one, {"memoryId": memory_id})
+                if doc:
+                    content = doc.get("content", "")
+            
             adrs.append({
                 "id": memory_id,
                 "title": title,
                 "description": description,
+                "content": content,
                 "timestamp": tag.get("timestamp") or s.get("updated_at") or s.get("created_at"),
                 "author": tag.get("author", "Unknown"),
             })
-            
-    if "memories" in cols:
-        adr_ids = [a["id"] for a in adrs]
-        docs = list(cols["memories"].find({"memoryId": {"$in": adr_ids}}))
-        content_map = {d["memoryId"]: d.get("content", "") for d in docs}
-        for a in adrs:
-            a["content"] = content_map.get(a["id"], "")
             
     return {"success": True, "data": adrs}
 

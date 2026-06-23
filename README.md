@@ -2,61 +2,47 @@
 
 > An AI-powered system orchestrator that remembers every decision it makes.
 
-Ask architectural questions, get structured implementation plans, and watch every decision get automatically stored in persistent memory — so the agent never starts from zero.
+SentientOS is an intelligent platform designed to act as your team's autonomous technical lead. Ask architectural questions, ingest real-world webhooks, upload complex documentation, and watch every decision get automatically stored in a persistent memory vault—so the agent never starts from zero.
 
 ---
 
-## Architecture
+## 🚀 Core Features
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        Browser                              │
-│                                                             │
-│   ┌─────────────────────┐   ┌──────────────────────────┐   │
-│   │   Memory Sidebar    │   │     Agent Chat (70%)     │   │
-│   │   (Past Decisions)  │   │                          │   │
-│   │                     │   │  User msg  ──────────►  │   │
-│   │  ┌───────────────┐  │   │  ◄────────  Agent reply │   │
-│   │  │ MemoryCard    │  │   │                          │   │
-│   │  │ MemoryCard    │  │   │  📎 N memories used      │   │
-│   │  └───────────────┘  │   │     └── confidence bars  │   │
-│   └─────────────────────┘   └──────────────────────────┘   │
-│          React + Vite + Tailwind CSS (localhost:5173)        │
-└────────────────────────────┬────────────────────────────────┘
-                             │ HTTP / Vite proxy
-                             ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    Express API Server                       │
-│                      (localhost:3001)                       │
-│                                                             │
-│   POST /api/agent      ──► agent.js                        │
-│   GET  /api/memories   ──► parcle.js → listRecentMemories  │
-│   POST /api/memory     ──► parcle.js → saveMemory          │
-│   GET  /api/health                                          │
-└──────────────┬──────────────────────────┬───────────────────┘
-               │                          │
-               ▼                          ▼
-   ┌───────────────────┐      ┌───────────────────────┐
-   │   Google Gemini   │      │     Parcle Memory     │
-   │  (gemini-2.5-     │      │      (parcle.ai)      │
-   │   flash)          │      │                       │
-   │                   │      │  saveMemory()         │
-   │  generateContent  │      │  queryMemory()        │
-   │  (context-aware   │      │  listRecentMemories() │
-   │   prompt with     │      │                       │
-   │   past decisions) │      │  SSE search stream    │
-   └───────────────────┘      └───────────────────────┘
-```
+- **Autonomous Agent Chat**: Chat with a Gemini-powered AI that dynamically queries past decisions using semantic search.
+- **Parcle Memory Vault**: All decisions, bugs, and knowledge are embedded into a vector database (Parcle AI) for instant, context-aware retrieval.
+- **Automated Webhook Ingestion**: Simulate or receive real-world incoming webhooks (GitHub, Jira, Datadog, Slack) and let the AI autonomously run root-cause analysis and suggest resolutions.
+- **Documents Library (RAG)**: Drag and drop `.pdf`, `.docx`, or `.txt` files. SentientOS automatically chunks and embeds the text, allowing the AI to answer questions directly from your documentation.
+- **Daily Standup Summarizer**: The AI automatically reads all system logs, events, and memories to generate a daily standup report of what happened across your engineering organization.
+- **ADR & Bug Tracking**: Auto-generates Architecture Decision Records (ADRs) and actively tracks system bugs based on ingestion pipelines.
 
 ---
 
-## Setup
+## 🏗️ Architecture Stack
+
+**Frontend (Client)**:
+- React + Vite
+- React Router DOM
+- Global Light/Dark Theme System (Glassmorphic Design)
+- Recharts for Real-Time Analytics Dashboard
+
+**Backend (Server)**:
+- Python FastAPI (Port 3002)
+- MongoDB Atlas (Persistent Storage for Users, Uploads, Agent Logs)
+- Parcle AI Vector Database (Long-Term Semantic Memory)
+- Google Gemini SDK (`google-genai` / `gemini-2.5-flash`)
+- `pypdf` & `python-docx` for Document Ingestion
+
+---
+
+## ⚙️ Setup
 
 ### Prerequisites
 
+- Python 3.10+
 - Node.js 18+
 - A [Gemini API key](https://aistudio.google.com/app/apikey)
 - A [Parcle API key](https://parcle.ai)
+- A [MongoDB Atlas URI](https://www.mongodb.com/)
 
 ### 1. Clone the repo
 
@@ -67,175 +53,85 @@ cd SentientOS
 
 ### 2. Configure environment variables
 
-Copy the example file and fill in your keys:
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env`:
+Create a `.env` file in the root directory. You must define your MongoDB connection string (`MONGODB_URI`) so the backend can securely connect to your database cluster:
 
 ```env
 GEMINI_API_KEY=your_gemini_api_key_here
 PARCLE_API_KEY=your_parcle_api_key_here
+MONGODB_URI=your_mongodb_cluster_uri_here
 ENTER_PROJECT_ID=eternal-architect
-PORT=3001
+PORT=3002
 ```
 
-### 3. Install dependencies
+---
+
+## 🗄️ MongoDB Database Integration
+
+SentientOS relies on **MongoDB** as its primary operational database. It uses a secure connection string to connect to your cluster.
+
+- **Connection String**: The connection is established via the `MONGODB_URI` environment variable, which is safely read from your `.env` file.
+- **Persistent Storage**: MongoDB is used to permanently store:
+  - Agent and chat logs
+  - Ingested Webhook events and simulations
+  - User and project metadata
+  - Analytics and performance tracking metrics
+
+When the backend starts, it automatically connects to your MongoDB cluster and verifies the connection using the provided `MONGODB_URI`.
+
+---
+
+### 3. Install Backend Dependencies
 
 ```bash
-# Root + server deps
+cd backend
+pip install -r requirements.txt
+python -m uvicorn agent:app --reload --port 3002
+```
+
+### 4. Install Frontend Dependencies
+
+```bash
+# In a new terminal window
+cd client
 npm install
-
-# Client deps
-cd client && npm install && cd ..
-```
-
-### 4. Seed initial project memories
-
-Run this once to give the agent its foundational knowledge:
-
-```bash
-node server/seedMemories.js
-```
-
-Expected output:
-```
-╔══════════════════════════════════════════════╗
-║       SentientOS — Parcle Memory Seeder      ║
-╚══════════════════════════════════════════════╝
-
-[1/6] "Frontend Stack Decision" … ✅  saved  (session_id: sess_...)
-[2/6] "Backend Stack Decision"  … ✅  saved  (session_id: sess_...)
-[3/6] "API Design Pattern"      … ✅  saved  (session_id: sess_...)
-[4/6] "Memory Strategy"         … ✅  saved  (session_id: sess_...)
-[5/6] "Styling Rules"           … ✅  saved  (session_id: sess_...)
-[6/6] "Error Handling Rule"     … ✅  saved  (session_id: sess_...)
-
-  Done.  ✅ 6 seeded   ❌ 0 failed
-```
-
-### 5. Start the development servers
-
-```bash
 npm run dev
 ```
 
-This starts both concurrently:
+### 5. Access the Application
+
 - **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:3001
+- **Backend API**: http://localhost:3002
 
 ---
 
-## API Reference
+## 🧠 How Parcle Memory Works
 
-### `POST /api/agent` — Run the AI agent
+Parcle is the long-term memory layer that makes the agent context-aware across sessions.
 
-Sends a task to the Eternal Architect. The agent queries Parcle for relevant past decisions, builds a context-aware prompt, calls Gemini, saves the new decision, and returns everything.
-
-```bash
-curl -X POST http://localhost:3001/api/agent \
-  -H "Content-Type: application/json" \
-  -d '{"task": "What database technology should SentientOS use?"}'
-```
-
-**Response:**
-
-```json
-{
-  "response": "Based on past decisions for SentientOS, we will use PostgreSQL...",
-  "retrievedMemories": [
-    {
-      "title": "SentientOS should use PostgreSQL as its primary datastore",
-      "confidence": 78,
-      "citationIds": ["sess_zABslXD...", "sess_o14M7s..."]
-    }
-  ],
-  "memoriesSaved": true
-}
-```
-
-### `GET /api/memories` — List recent memories
-
-```bash
-curl http://localhost:3001/api/memories
-```
-
-### `POST /api/memory` — Save a memory manually
-
-```bash
-curl -X POST http://localhost:3001/api/memory \
-  -H "Content-Type: application/json" \
-  -d '{"title": "My Decision", "content": "We chose X because Y.", "tags": ["decision"]}'
-```
-
-### `GET /api/health`
-
-```bash
-curl http://localhost:3001/api/health
-# {"status":"ok","timestamp":"2026-06-21T..."}
-```
+1. **`save_memory(title, content, tags)`**
+   Called automatically after every agent response, document upload, or webhook resolution. Stores the data in Parcle so it's semantically searchable.
+2. **`queryMemory(naturalLanguageQuery)`**
+   Called at the start of every agent run. Searches Parcle via SSE stream using the user's task as the query. The top results are injected into the system prompt so Gemini never contradicts past decisions.
 
 ---
 
-## How Parcle Memory Works
+## 🤖 Built with Vibe Coding on Enter Pro
 
-Parcle is the long-term memory layer that makes the agent context-aware across sessions. Three functions power the entire memory system:
+This entire application was built completely through **Vibe Coding** on **Enter Pro**. 
 
-### `saveMemory(title, content, tags[])`
+Without writing a single line of code manually, the following was orchestrated purely through natural language instructions:
 
-Called automatically after every agent response. Stores the decision as a two-turn dialog in Parcle so it's semantically searchable:
+- Scaffolded the entire Python/FastAPI backend and React frontend from scratch.
+- Integrated MongoDB, Parcle AI, and Google Gemini into a seamless RAG architecture.
+- Built the automated Webhook Simulator and Operations Center analytics dashboard.
+- Implemented document parsing (`.pdf`, `.docx`) and chunking directly into vector storage.
+- Designed the Apple-inspired UI design system with a global light/dark theme switch.
 
-```
-user:      "[Memory] What database should SentientOS use?"
-assistant: "PostgreSQL, because..."
-```
-
-Tags like `type:decision`, `project:eternal-architect`, and `date:YYYY-MM-DD` are attached for filtering.
-
-### `queryMemory(naturalLanguageQuery)`
-
-Called at the start of every agent run. Searches Parcle via SSE stream using the user's task as the query. Returns up to 5 result objects each with:
-- `answer` — the retrieved memory content
-- `confidence` — 0.0–1.0 match score
-- `citations` — source session IDs
-
-The top results are injected into the system prompt so Gemini never contradicts past decisions.
-
-### `listRecentMemories(limit = 10)`
-
-Used by the sidebar to display the 10 most recent stored decisions, sorted newest-first. Calls `/v1/memories/sources` on the Parcle API.
-
----
-## Project Structure
-
-```
-SentientOS/
-├── .env                      # API keys (not committed)
-├── package.json              # Root: concurrently runs both servers
-│
-├── server/
-│   ├── index.js              # Express API server (port 3001)
-│   ├── agent.js              # Core agent loop: query → prompt → Gemini → save
-│   ├── parcle.js             # Parcle memory API helpers
-│   └── seedMemories.js       # One-time knowledge seeder
-│
-└── client/
-    ├── vite.config.js        # Vite + /api proxy to port 3001
-    └── src/
-        ├── main.jsx
-        ├── index.css         # Design tokens, animations, mobile CSS
-        └── App.jsx           # Two-panel UI: sidebar + chat
-```
-
----
-
+The entire backend + frontend was brought to life via Vibe Coding, with **Enter Pro** proposing, implementing, and verifying each step end-to-end.
 
 | Desktop | 
 |---------|
-| ![Desktop UI](<img width="2940" height="1664" alt="image" src="https://github.com/user-attachments/assets/e67729fb-c3b1-4f46-b0bb-fc4ce7fdf062" />
-) |
+| ![Desktop UI](<img width="2940" height="1664" alt="image" src="https://github.com/user-attachments/assets/e67729fb-c3b1-4f46-b0bb-fc4ce7fdf062" />) |
 
 ---
 

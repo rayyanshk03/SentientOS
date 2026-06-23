@@ -167,31 +167,22 @@ async def call_anthropic(system_prompt: str, user_message: str, chat_history: li
 # ─── Smart router: Anthropic -> Groq → Gemini → mock ────────────────────────
 async def call_llm(system_prompt: str, user_message: str, chat_history: list = None) -> tuple[str, str]:
     """Returns (response_text, provider_name)"""
-    err_ant = ""
     err_groq = ""
-    err_gemini = ""
-    # 1. Try Anthropic (Enter Pro proxy)
+
+    # 1. Try Groq
     try:
-        response = await call_anthropic(system_prompt, user_message, chat_history)
-        return response, "Enter Pro (Claude 3.5 Sonnet)"
+        response = await call_groq(system_prompt, user_message, chat_history)
+        return response, "Groq LLaMA 3.3"
     except Exception as e:
-        err_ant = str(e)
-        print(f"[LLM] Enter Pro failed: {err_ant}")
-        
-    # 2. Try Gemini (Free Fallback)
-    try:
-        response = await call_gemini(system_prompt, user_message, chat_history)
-        return response, "Gemini"
-    except Exception as e:
-        err_gemini = str(e)
-        print(f"[LLM] Gemini failed: {err_gemini}")
-        
+        err_groq = str(e)
+        print(f"[LLM] Groq failed: {err_groq}")
+
     # Last resort: informative mock
     mock = (
         "I couldn't reach any AI provider right now.\n\n"
-        f"**Enter Pro Error:** {err_ant}\n\n"
-        f"**Gemini Error:** {err_gemini}\n\n"
-        "**Note:** Enter Pro credits cannot currently be accessed via external Python scripts. Please get a free Gemini API key from [aistudio.google.com](https://aistudio.google.com)."
+        f"**Groq Error:** {err_groq}\n\n"
+        "**To fix this:**\n"
+        "Ensure your `GROQ_API_KEY` is correct in the `.env` file."
     )
     return mock, "Mock Agent"
 
@@ -381,6 +372,9 @@ Output Format
 Goal
 
 Act as the project's permanent architectural brain. Never make decisions in isolation. Every response must leverage historical architectural knowledge and preserve long-term system consistency.
+
+Conversational Rule:
+If the user is just saying a conversational greeting (e.g., "hello", "hi", "how are you") or asking a general question NOT related to building a feature or architecture, DO NOT output an architecture design or implementation plan. Simply respond conversationally and naturally as the Eternal Architect. ONLY output the architecture format if the user is actually asking an architectural or development question.
 
 What your model should actually do
 
@@ -2382,20 +2376,20 @@ CONTEXT FROM MEMORY:
 
 RESPONSE RULES:
 1. Provide the main response according to the user's task (keep it concise and helpful).
-2. AT THE END of every response, you MUST append a "Reasoning Trace" section formatted exactly like this:
+2. AT THE END of every response, you MUST append a Reasoning Trace section formatted EXACTLY like this:
 
-### Reasoning Trace
+**Reasoning Trace**
+
 **Memories Retrieved:**
-- [List the titles or topics of the context memories you used]
+- [List the titles or topics of the context memories you used, e.g. "USER IDENTITY: ..."]
 
-**Reasoning:**
-[Explain briefly how these specific memories influenced your generated solution]
+**Reasoning:** [Explain briefly how these specific memories influenced your generated solution]
 
 **Obsolete Memories:**
-- [If the user's current task UPDATES, INVALIDATES, or REPLACES any of the provided memories, list their exact IDs here so they can be deleted. If none, write "None". Example: sess_abc123]
+- [If the user's current task UPDATES, INVALIDATES, or REPLACES any of the provided memories, list their exact IDs here so they can be deleted. If none, write "None"]
 
 Even if no memories were retrieved, include the trace and state that you relied on general knowledge.
-ALWAYS include this section."""
+ALWAYS include this section exactly as formatted above."""
 
     if on_step:
         await on_step('🧠 Calling AI...')

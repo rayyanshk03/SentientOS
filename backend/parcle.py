@@ -158,12 +158,18 @@ async def query_memory(natural_language_query: str):
             print("[Parcle] No final event found in search response.")
             return []
 
-        print(f"[Parcle] ✅ queryMemory result → confidence={final_data.get('confidence')} citations={len(final_data.get('citations', []))}")
+        confidence = final_data.get('confidence', 0)
+        print(f"[Parcle] ✅ queryMemory result → confidence={confidence} citations={len(final_data.get('citations', []))}")
+
+        # If confidence is exceptionally low (e.g., < 40 on a 0-100 scale, or < 0.4 on 0-1 scale)
+        if (confidence < 40 and confidence > 1) or (confidence < 0.4 and confidence <= 1.0):
+            print("[Parcle] Result confidence too low, ignoring.")
+            return []
 
         results = [{
             "query":      natural_language_query,
             "answer":     final_data.get("answer"),
-            "confidence": final_data.get("confidence"),
+            "confidence": confidence,
             "citations":  final_data.get("citations", [])
         }]
 

@@ -94,20 +94,21 @@ async def get_bugs(limit: int = 50):
             title = tag.get("title") or s.get("title") or "Unnamed Bug"
             description = tag.get("description", "A documented bug fix.")
             
+            content = ""
+            if cols and "memories" in cols:
+                import asyncio
+                doc = await asyncio.to_thread(cols["memories"].find_one, {"memoryId": memory_id})
+                if doc:
+                    content = doc.get("content", "")
+            
             bugs.append({
                 "id": memory_id,
                 "title": title,
                 "description": description,
+                "content": content,
                 "timestamp": tag.get("timestamp") or s.get("updated_at") or s.get("created_at"),
                 "author": tag.get("author", "Unknown"),
             })
-            
-    if "memories" in cols:
-        bug_ids = [b["id"] for b in bugs]
-        docs = list(cols["memories"].find({"memoryId": {"$in": bug_ids}}))
-        content_map = {d["memoryId"]: d.get("content", "") for d in docs}
-        for b in bugs:
-            b["content"] = content_map.get(b["id"], "")
             
     return {"success": True, "data": bugs}
 

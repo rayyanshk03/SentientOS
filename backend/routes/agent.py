@@ -41,7 +41,7 @@ async def agent_endpoint(request: Request):
                 try:
                     cols = get_collections()
                     if cols and cols["conversations"] is not None:
-                        conv = cols["conversations"].find_one({"sessionId": session_id})
+                        conv = await asyncio.to_thread(cols["conversations"].find_one, {"sessionId": session_id})
                         if conv and "messages" in conv:
                             chat_history = conv["messages"][-10:] # last 10 messages for context
                 except Exception as e:
@@ -60,7 +60,8 @@ async def agent_endpoint(request: Request):
                 try:
                     cols = get_collections()
                     if cols and cols["conversations"] is not None:
-                        cols["conversations"].update_one(
+                        await asyncio.to_thread(
+                            cols["conversations"].update_one,
                             {"sessionId": session_id},
                             {
                                 "$set": {"projectId": project_id, "updatedAt": datetime.utcnow()},
@@ -100,12 +101,13 @@ async def get_conversations(project_id: str):
     try:
         cols = get_collections()
         if not cols or cols["conversations"] is None:
-            return {"conversations": []}
+            return {"success": False, "error": "Database not connected"}
         
-        # Find conversations for project_id sorted by updatedAt descending
-        cur = cols["conversations"].find({"projectId": project_id}).sort("updatedAt", -1)
+        import asyncio
+        docs = await asyncio.to_thread(lambda: list(cols["conversations"].find({"projectId": project_id}).sort("updatedAt", -1)))
+        
         convs = []
-        for doc in cur:
+        for doc in docs:
             messages = doc.get("messages", [])
             preview = messages[0].get("content", "") if messages else ""
             msg_count = len(messages)
@@ -128,8 +130,11 @@ async def get_session_messages(session_id: str):
     try:
         cols = get_collections()
         if not cols or cols["conversations"] is None:
-            return {"messages": []}
-        doc = cols["conversations"].find_one({"sessionId": session_id})
+            return {"success": False, "error": "Database not connected"}
+            
+        import asyncio
+        doc = await asyncio.to_thread(cols["conversations"].find_one, {"sessionId": session_id})
+        
         if doc and "messages" in doc:
             msgs = []
             for m in doc["messages"]:
@@ -149,11 +154,13 @@ async def get_projects():
     try:
         cols = get_collections()
         if not cols or cols["projects"] is None:
-            return {"projects": []}
+            return {"success": False, "error": "Database not connected"}
             
-        cur = cols["projects"].find({}).sort("updatedAt", -1)
+        import asyncio
+        docs = await asyncio.to_thread(lambda: list(cols["projects"].find({}).sort("updatedAt", -1)))
+        
         projects = []
-        for doc in cur:
+        for doc in docs:
             projects.append({
                 "id": str(doc.get("_id")) or doc.get("id"),
                 "projectId": doc.get("projectId"),
@@ -209,6 +216,7 @@ async def create_project(request: Request):
         
         cols = get_collections()
         if cols and cols["projects"] is not None:
+            import asyncio
             new_proj = {
                 "projectId": project_id,
                 "name": name,
@@ -217,7 +225,7 @@ async def create_project(request: Request):
                 "memoryCount": 0,
                 "updatedAt": datetime.utcnow()
             }
-            cols["projects"].insert_one(new_proj)
+            await asyncio.to_thread(cols["projects"].insert_one, new_proj)
             return {"success": True, "projectId": project_id}
         return {"error": "database unavailable"}
     except Exception as e:

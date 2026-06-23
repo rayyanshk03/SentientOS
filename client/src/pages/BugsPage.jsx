@@ -24,7 +24,9 @@ export default function BugsPage() {
 
   // Delete State
   const [deletingId, setDeletingId] = useState(null);
-  const [viewingBug, setViewingBug] = useState(null);
+
+  // View Details State
+  const [selectedBug, setSelectedBug] = useState(null);
 
   useEffect(() => {
     fetchBugs();
@@ -184,14 +186,12 @@ export default function BugsPage() {
               return (
                 <div 
                   key={bug.id} 
-                  onClick={() => setViewingBug(bug)}
+                  onClick={() => setSelectedBug(bug)}
                   style={{
-                    background: 'var(--white)', border: '2px solid var(--border)', borderRadius: 'var(--radius-card)',
-                    padding: 32, boxShadow: 'var(--shadow-md)', display: 'flex', gap: 24,
-                    transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
-                    cursor: 'pointer'
-                  }}
-                >
+                  background: 'var(--white)', border: '2px solid var(--border)', borderRadius: 'var(--radius-card)',
+                  padding: 32, boxShadow: 'var(--shadow-md)', display: 'flex', gap: 24,
+                  transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)', cursor: 'pointer'
+                }}>
                   <div style={{ fontSize: 28, padding: '4px 0', filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))' }}>🐛</div>
                   <div style={{ flex: 1 }}>
                     <h3 style={{ margin: '0 0 10px', fontSize: 20, fontWeight: 700, color: '#1d1d1f', letterSpacing: '-0.5px' }}>{bug.title}</h3>
@@ -216,6 +216,25 @@ export default function BugsPage() {
           </div>
         )}
       </div>
+
+      {/* View Details Modal */}
+      <Modal open={!!selectedBug} onClose={() => setSelectedBug(null)} title={selectedBug ? selectedBug.title : ''}>
+        {selectedBug && (
+          <div style={{ padding: '16px 0' }}>
+            <div style={{ display: 'flex', gap: 8, fontSize: 13, color: '#86868b', fontWeight: 500, marginBottom: 24 }}>
+              <span style={{ background: '#F5F5F7', padding: '4px 10px', borderRadius: 12 }}>📅 {new Date(selectedBug.timestamp).toLocaleDateString()}</span>
+              <span style={{ background: '#F5F5F7', padding: '4px 10px', borderRadius: 12 }}>👤 {selectedBug.author}</span>
+            </div>
+            <div style={{ fontSize: 15, lineHeight: 1.6, color: '#1d1d1f' }} className="markdown-body">
+              {selectedBug.content ? (
+                <ReactMarkdown>{selectedBug.content}</ReactMarkdown>
+              ) : (
+                <p>{selectedBug.description}</p>
+              )}
+            </div>
+          </div>
+        )}
+      </Modal>
 
       {/* Log Bug Modal */}
       <Modal open={isCreateOpen} onClose={() => !isCreating && setIsCreateOpen(false)} title="Log Bug Fix">
@@ -267,32 +286,6 @@ export default function BugsPage() {
             <Button variant="primary" onClick={handleCreate} loading={isCreating} disabled={!formData.title || !formData.solution}>
               Save to Memory
             </Button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* View Full Bug Modal */}
-      <Modal open={!!viewingBug} onClose={() => setViewingBug(null)} title={viewingBug?.title || "Bug Fix Details"}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ fontSize: 14, color: '#86868b', fontWeight: 500 }}>
-            {viewingBug && new Date(viewingBug.timestamp).toLocaleDateString()}
-            {viewingBug && viewingBug.author && ` • By ${viewingBug.author}`}
-          </div>
-          <div style={{ 
-            fontSize: 14.5, 
-            lineHeight: 1.6, 
-            color: '#1d1d1f',
-            background: '#F5F5F7',
-            padding: 20,
-            borderRadius: 'var(--radius-card)',
-            whiteSpace: 'pre-wrap',
-            maxHeight: '60vh',
-            overflowY: 'auto'
-          }}>
-            <ReactMarkdown>{viewingBug?.content || "*No detailed context available for this bug fix.*"}</ReactMarkdown>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button variant="ghost" onClick={() => setViewingBug(null)}>Close</Button>
           </div>
         </div>
       </Modal>

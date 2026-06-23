@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 @router.get("/stats")
 async def get_stats():
     from database import get_collections
-    raw_memories = await list_recent_memories(1000) # Fetch up to 1000 to get a solid recent block
+    raw_memories = await list_recent_memories(100) # Fetch up to 100 to avoid Parcle API 422 limit error
     cols = get_collections()
     
     deleted_ids = set()

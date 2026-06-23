@@ -26,3 +26,6 @@ Thumbs.db
 # Lock files (optional — remove these lines if you want to commit them)
 # package-lock.json
 # client/package-lock.json
+
+backend/venv2/
+
