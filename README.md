@@ -208,23 +208,6 @@ The top results are injected into the system prompt so Gemini never contradicts 
 Used by the sidebar to display the 10 most recent stored decisions, sorted newest-first. Calls `/v1/memories/sources` on the Parcle API.
 
 ---
-
-## How Antigravity (Enter Pro) Was Used
-
-This project was built collaboratively with **Antigravity IDE** (powered by Google DeepMind), which:
-
-- Scaffolded the entire `server/` and `client/src/` structure from scratch
-- Wrote and debugged the Parcle SSE stream parser (`queryMemory`) — a non-trivial real-time parsing challenge
-- Implemented the Apple-inspired UI design system with full mobile responsiveness
-- Designed the 3-tier data flow: Parcle retrieval → Gemini prompt injection → response + re-save
-- Built the `seedMemories.js` one-shot script with progress logging and error handling
-- Iterated on the `retrievedMemories[]` API shape and frontend citation UI in a single pass
-- Caught and fixed a `GEMINI_API_KEY` dotenv path bug across the server subdirectory context
-
-The entire backend + frontend was built in a single session using natural language instructions, with Antigravity proposing, implementing, and verifying each step end-to-end.
-
----
-
 ## Project Structure
 
 ```
@@ -248,13 +231,10 @@ SentientOS/
 
 ---
 
-## Screenshots
 
-> _Add screenshots here after first run_
-
-| Desktop | Mobile |
-|---------|--------|
-| ![Desktop UI](./screenshots/desktop.png) | ![Mobile UI](./screenshots/mobile.png) |
+| Desktop | 
+|---------|
+| ![Desktop UI](./screenshots/desktop.png) |
 
 ---
 
