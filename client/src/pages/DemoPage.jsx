@@ -41,7 +41,7 @@ export default function DemoPage() {
           solution: "Use FastAPI and PostgreSQL.",
           reasoning: "FastAPI provides async support and auto-docs. PostgreSQL offers ACID compliance.",
           alternatives: "Node.js / MongoDB",
-          author: "Lead Architect"
+          author: "Demo Script"
         }),
       });
       const data = await res.json();

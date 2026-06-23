@@ -22,6 +22,10 @@ export default function BugsPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchResult, setSearchResult] = useState(null);
 
+  // Delete State
+  const [deletingId, setDeletingId] = useState(null);
+  const [viewingBug, setViewingBug] = useState(null);
+
   useEffect(() => {
     fetchBugs();
   }, []);
@@ -81,6 +85,18 @@ export default function BugsPage() {
       setSearchResult("Failed to reach the AI memory core. Please try again.");
     }
     setIsSearching(false);
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/memories/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setDeletingId(null);
+        fetchBugs();
+      }
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   return (
@@ -166,20 +182,32 @@ export default function BugsPage() {
               const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
               return (
-                <div key={bug.id} style={{
-                  background: 'var(--white)', border: '2px solid var(--border)', borderRadius: 'var(--radius-card)',
-                  padding: 32, boxShadow: 'var(--shadow-md)', display: 'flex', gap: 24,
-                  transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)'
-                }}>
+                <div 
+                  key={bug.id} 
+                  onClick={() => setViewingBug(bug)}
+                  style={{
+                    background: 'var(--white)', border: '2px solid var(--border)', borderRadius: 'var(--radius-card)',
+                    padding: 32, boxShadow: 'var(--shadow-md)', display: 'flex', gap: 24,
+                    transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+                    cursor: 'pointer'
+                  }}
+                >
                   <div style={{ fontSize: 28, padding: '4px 0', filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))' }}>🐛</div>
                   <div style={{ flex: 1 }}>
                     <h3 style={{ margin: '0 0 10px', fontSize: 20, fontWeight: 700, color: '#1d1d1f', letterSpacing: '-0.5px' }}>{bug.title}</h3>
                     <p style={{ margin: '0 0 16px', fontSize: 15, lineHeight: 1.6, color: '#515154' }}>
                       {bug.description}
                     </p>
-                    <div style={{ display: 'flex', gap: 12, fontSize: 13, color: '#86868b', fontWeight: 500, flexWrap: 'wrap' }}>
-                      <span style={{ background: '#F5F5F7', padding: '4px 10px', borderRadius: 12 }}>📅 {dateStr}</span>
-                      <span style={{ background: '#F5F5F7', padding: '4px 10px', borderRadius: 12 }}>👤 {bug.author}</span>
+                    <div style={{ display: 'flex', gap: 12, fontSize: 13, color: '#86868b', fontWeight: 500, flexWrap: 'wrap', alignItems: 'center' }}>
+                      <span style={{ background: '#F5F5F7', padding: '4px 10px', borderRadius: 12, whiteSpace: 'nowrap' }}>📅 {dateStr}</span>
+                      <span style={{ background: '#F5F5F7', padding: '4px 10px', borderRadius: 12, whiteSpace: 'nowrap' }}>👤 {bug.author}</span>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); setDeletingId(bug.id); }} 
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#ff3b30', opacity: 0.7, padding: '4px', marginLeft: 'auto' }} 
+                        title="Delete"
+                      >
+                        🗑️
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -242,6 +270,48 @@ export default function BugsPage() {
           </div>
         </div>
       </Modal>
+
+      {/* View Full Bug Modal */}
+      <Modal open={!!viewingBug} onClose={() => setViewingBug(null)} title={viewingBug?.title || "Bug Fix Details"}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ fontSize: 14, color: '#86868b', fontWeight: 500 }}>
+            {viewingBug && new Date(viewingBug.timestamp).toLocaleDateString()}
+            {viewingBug && viewingBug.author && ` • By ${viewingBug.author}`}
+          </div>
+          <div style={{ 
+            fontSize: 14.5, 
+            lineHeight: 1.6, 
+            color: '#1d1d1f',
+            background: '#F5F5F7',
+            padding: 20,
+            borderRadius: 'var(--radius-card)',
+            whiteSpace: 'pre-wrap',
+            maxHeight: '60vh',
+            overflowY: 'auto'
+          }}>
+            <ReactMarkdown>{viewingBug?.content || "*No detailed context available for this bug fix.*"}</ReactMarkdown>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button variant="ghost" onClick={() => setViewingBug(null)}>Close</Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete confirmation modal */}
+      {deletingId && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'var(--white)', borderRadius: 'var(--radius-card)', padding: 24, width: 340, display: 'flex', flexDirection: 'column', gap: 16, boxShadow: 'var(--shadow-lg)' }}>
+            <span style={{ fontWeight: 700, fontSize: 15, color: '#FF3B30' }}>Delete Decision Rule?</span>
+            <div style={{ fontSize: 13, color: 'var(--gray-mid)', lineHeight: 1.5 }}>
+              This will remove this rule completely from the memory vault. The AI agent might contradict this rule in future.
+            </div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <Button variant="ghost" onClick={() => setDeletingId(null)}>Cancel</Button>
+              <Button variant="danger" onClick={() => handleDelete(deletingId)}>Yes, delete</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

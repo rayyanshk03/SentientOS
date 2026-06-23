@@ -175,16 +175,6 @@ export default function MemoriesPage() {
     setIsSaving(true);
     try {
       const tags = newTagsStr.split(',').map(s => s.trim()).filter(Boolean);
-      // Map UI category label to enum key
-      const categoryMap = {
-        'Architecture Decision': 'architecture',
-        'Bug Fix': 'bug_fix',
-        'Coding Standard': 'coding_standard',
-        'Deployment History': 'deployment',
-        'Feature Request': 'feature',
-        'Team Discussion': 'team',
-        'Documentation Update': 'documentation',
-      };
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/memory/save`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -192,7 +182,7 @@ export default function MemoriesPage() {
           title: newTitle.trim(),
           content: newContent.trim(),
           description: newDescription.trim() || undefined,
-          category: categoryMap[newCategory] || 'general',
+          category: newCategory || 'General',
           source: newSource,
           projectId: 'default-project',
           tags,

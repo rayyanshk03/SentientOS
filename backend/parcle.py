@@ -73,6 +73,7 @@ async def save_memory(
             "source": source,
             "decision": "true",
             "architect": "true",
+            "title": title[:200]
         }
 
         if description:

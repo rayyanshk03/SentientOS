@@ -47,7 +47,14 @@ async def agent_endpoint(request: Request):
                 except Exception as e:
                     print(f"[Server] Failed to fetch chat history: {e}")
 
-                result = await run_agent(task, persona, chat_history, on_step)
+                result = await run_agent(
+                    user_task=task,
+                    persona=persona,
+                    chat_history=chat_history,
+                    on_step=on_step,
+                    project_id=project_id,
+                    session_id=session_id
+                )
                 await q.put(f"event: done\ndata: {json.dumps({'response': result['response'], 'retrievedMemories': result['retrievedMemories'], 'memoriesSaved': True})}\n\n")
 
                 try:

@@ -21,6 +21,10 @@ export default function AdrsPage() {
   const [explainingId, setExplainingId] = useState(null);
   const [explanations, setExplanations] = useState({});
 
+  // Delete State
+  const [deletingId, setDeletingId] = useState(null);
+  const [viewingAdr, setViewingAdr] = useState(null);
+
   useEffect(() => {
     fetchAdrs();
   }, []);
@@ -79,6 +83,18 @@ export default function AdrsPage() {
     setExplainingId(null);
   };
 
+  const handleDelete = async (id) => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/memories/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setDeletingId(null);
+        fetchAdrs();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   return (
     <div style={{ ...panelBase, gridColumn: 2, gridRow: '2 / 4', flex: 1, overflowY: 'auto', padding: '40px 48px', background: '#F5F5F7' }}>
       <div style={{ }}>
@@ -132,13 +148,17 @@ export default function AdrsPage() {
                   </div>
 
                   {/* ADR Card */}
-                  <div style={{
-                    width: 'calc(50% - 48px)',
-                    background: 'var(--white)', border: '2px solid var(--border)', borderRadius: 'var(--radius-card)',
-                    padding: 32, boxShadow: 'var(--shadow-md)',
-                    transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
-                    position: 'relative', zIndex: 2
-                  }}>
+                  <div 
+                    onClick={() => setViewingAdr(adr)}
+                    style={{
+                      width: 'calc(50% - 48px)',
+                      background: 'var(--white)', border: '2px solid var(--border)', borderRadius: 'var(--radius-card)',
+                      padding: 32, boxShadow: 'var(--shadow-md)',
+                      transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+                      position: 'relative', zIndex: 2,
+                      cursor: 'pointer'
+                    }}
+                  >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16, flexWrap: 'wrap', gap: 16 }}>
                       <div style={{ flex: '1 1 min-content' }}>
                         <h3 style={{ margin: '0 0 10px', fontSize: 20, fontWeight: 700, color: '#1d1d1f', letterSpacing: '-0.5px' }}>{adr.title}</h3>
@@ -147,33 +167,20 @@ export default function AdrsPage() {
                         </div>
                       </div>
                       
-                      {!explanation && (
-                        <div style={{ flexShrink: 0 }}>
-                          <Button variant="ghost" onClick={() => handleExplain(adr)} disabled={isExplaining}>
-                            {isExplaining ? 'Thinking...' : '✨ Explain Why'}
-                          </Button>
-                        </div>
-                      )}
+                      <div style={{ flexShrink: 0, display: 'flex', gap: 8 }}>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); setDeletingId(adr.id); }} 
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#ff3b30', opacity: 0.7, padding: '8px' }} 
+                          title="Delete"
+                        >
+                          🗑️
+                        </button>
+                      </div>
                     </div>
 
                     <p style={{ margin: '0 0 16px', fontSize: 15, lineHeight: 1.6, color: '#515154' }}>
                       {adr.description}
                     </p>
-
-                    {/* AI Explanation Area */}
-                    {explanation && (
-                      <div style={{
-                        marginTop: 20, padding: 20, background: 'rgba(0, 113, 227, 0.04)', borderRadius: 'var(--radius-card)',
-                        borderLeft: '4px solid #A855F7'
-                      }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: '#A855F7', textTransform: 'uppercase', marginBottom: 10, letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                          ✨ AI Explanation
-                        </div>
-                        <div style={{ fontSize: 14.5, lineHeight: 1.6, color: '#1d1d1f' }}>
-                          <ReactMarkdown>{explanation}</ReactMarkdown>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               );
@@ -256,6 +263,47 @@ export default function AdrsPage() {
           </div>
         </div>
       </Modal>
+
+      {/* View Full Architecture Modal */}
+      <Modal open={!!viewingAdr} onClose={() => setViewingAdr(null)} title={viewingAdr?.title || "Architecture Decision"}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ fontSize: 14, color: '#86868b', fontWeight: 500 }}>
+            {viewingAdr && new Date(viewingAdr.timestamp).toLocaleDateString()}
+          </div>
+          <div style={{ 
+            fontSize: 14.5, 
+            lineHeight: 1.6, 
+            color: '#1d1d1f',
+            background: '#F5F5F7',
+            padding: 20,
+            borderRadius: 'var(--radius-card)',
+            whiteSpace: 'pre-wrap',
+            maxHeight: '60vh',
+            overflowY: 'auto'
+          }}>
+            <ReactMarkdown>{viewingAdr?.content || "*No detailed context available for this architecture decision.*"}</ReactMarkdown>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button variant="ghost" onClick={() => setViewingAdr(null)}>Close</Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete confirmation modal */}
+      {deletingId && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'var(--white)', borderRadius: 'var(--radius-card)', padding: 24, width: 340, display: 'flex', flexDirection: 'column', gap: 16, boxShadow: 'var(--shadow-lg)' }}>
+            <span style={{ fontWeight: 700, fontSize: 15, color: '#FF3B30' }}>Delete Decision Rule?</span>
+            <div style={{ fontSize: 13, color: 'var(--gray-mid)', lineHeight: 1.5 }}>
+              This will remove this rule completely from the memory vault. The AI agent might contradict this rule in future.
+            </div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <Button variant="ghost" onClick={() => setDeletingId(null)}>Cancel</Button>
+              <Button variant="danger" onClick={() => handleDelete(deletingId)}>Yes, delete</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

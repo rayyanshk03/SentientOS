@@ -8,11 +8,11 @@ router = APIRouter()
 
 class CreateAdrRequest(BaseModel):
     decisionName: str
-    problem: str
+    problem: Optional[str] = ""
     solution: str
-    reasoning: str
-    alternatives: str
-    author: str
+    reasoning: Optional[str] = ""
+    alternatives: Optional[str] = ""
+    author: Optional[str] = "Unknown"
     date: Optional[str] = None
     projectId: Optional[str] = "default-project"
 
@@ -77,24 +77,47 @@ async def get_adrs(limit: int = 50):
     """
     Fetches recent ADRs from Parcle by fetching sources and filtering for type:adr.
     """
+    from database import get_collections
     sources = await list_recent_memories(limit=limit)
+    
+    deleted_ids = set()
+    cols = get_collections()
+    if cols and cols.get("deleted_memories") is not None:
+        deleted_docs = cols["deleted_memories"].find({}, {"memoryId": 1})
+        deleted_ids = {doc["memoryId"] for doc in deleted_docs}
+        
     adrs = []
     
     for s in sources:
+        memory_id = s.get("session_id") or s.get("id")
+        if memory_id in deleted_ids:
+            continue
+            
         tag = s.get("tag") or {}
-        # We look for the custom "type:adr" or category "Architecture Decision Record"
-        if tag.get("type") == "adr" or tag.get("category") == "Architecture Decision Record":
+        # Filter out Demo Data
+        if tag.get("author") == "Demo Script" or tag.get("title") == "Database and Backend Framework Choice":
+            continue
+
+        # We look for the custom "type:adr" or category "Architecture Decision"
+        if tag.get("type") == "adr" or tag.get("category") in ["Architecture Decision Record", "Architecture Decision"]:
             # Extract basic info
             title = tag.get("title") or s.get("title") or "Unnamed Decision"
             description = tag.get("description", "A documented architecture decision.")
             
             adrs.append({
-                "id": s.get("session_id") or s.get("id"),
+                "id": memory_id,
                 "title": title,
                 "description": description,
                 "timestamp": tag.get("timestamp") or s.get("updated_at") or s.get("created_at"),
                 "author": tag.get("author", "Unknown"),
             })
+            
+    if "memories" in cols:
+        adr_ids = [a["id"] for a in adrs]
+        docs = list(cols["memories"].find({"memoryId": {"$in": adr_ids}}))
+        content_map = {d["memoryId"]: d.get("content", "") for d in docs}
+        for a in adrs:
+            a["content"] = content_map.get(a["id"], "")
             
     return {"success": True, "data": adrs}
 
