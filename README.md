@@ -1,4 +1,4 @@
-# SentientOS — Eternal Architect
+<img width="2940" height="1664" alt="image" src="https://github.com/user-attachments/assets/7ce2d3f0-d300-4019-802b-5e1027a5fd3a" /># SentientOS — Eternal Architect
 
 > An AI-powered system orchestrator that remembers every decision it makes.
 
@@ -234,7 +234,8 @@ SentientOS/
 
 | Desktop | 
 |---------|
-| ![Desktop UI](./screenshots/desktop.png) |
+| ![Desktop UI](<img width="2940" height="1664" alt="image" src="https://github.com/user-attachments/assets/e67729fb-c3b1-4f46-b0bb-fc4ce7fdf062" />
+) |
 
 ---
 
