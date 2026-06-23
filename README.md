@@ -6,6 +6,57 @@ SentientOS is an intelligent platform designed to act as your team's autonomous 
 
 ---
 
+## 🚀 Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        Browser                              │
+│                                                             │
+│   ┌─────────────────────┐   ┌──────────────────────────┐   │
+│   │   Memory Sidebar    │   │     Agent Chat (70%)     │   │
+│   │   (Past Decisions)  │   │                          │   │
+│   │                     │   │  User msg  ──────────►  │   │
+│   │  ┌───────────────┐  │   │  ◄────────  Agent reply │   │
+│   │  │ MemoryCard    │  │   │                          │   │
+│   │  │ MemoryCard    │  │   │  📎 N memories used      │   │
+│   │  └───────────────┘  │   │     └── confidence bars  │   │
+│   └─────────────────────┘   └──────────────────────────┘   │
+│          React + Vite + Tailwind CSS (localhost:5173)        │
+└────────────────────────────┬────────────────────────────────┘
+                             │ HTTP / Vite proxy
+                             ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    FastAPI Server                           │
+│                      (localhost:3002)                       │
+│                                                             │
+│   POST /api/agent      ──► agent.py                        │
+│   POST /api/upload     ──► upload.py → vector chunking     │
+│   POST /api/webhooks   ──► webhooks.py → auto-resolution   │
+│   GET  /api/health                                          │
+└──────────────┬──────────────────────────┬───────────────────┘
+               │                          │
+               ▼                          ▼
+   ┌───────────────────┐      ┌───────────────────────┐
+   │   Google Gemini   │      │     Parcle Memory     │
+   │  (gemini-2.5-     │      │      (parcle.ai)      │
+   │   flash)          │      │                       │
+   │                   │      │  save_memory()        │
+   │  generateContent  │      │  queryMemory()        │
+   │  (context-aware   │      │  SSE search stream    │
+   │   prompt with     │      │                       │
+   │   past decisions) │      │                       │
+   └───────────────┬───┘      └───────────┬───────────┘
+                   │                      │
+                   ▼                      ▼
+   ┌──────────────────────────────────────────────────┐
+   │                  MongoDB Atlas                   │
+   │           (Persistent Datastore)                 │
+   │   Collections: agent_logs, uploads, webhooks     │
+   └──────────────────────────────────────────────────┘
+```
+
+---
+
 ## 🚀 Core Features
 
 - **Autonomous Agent Chat**: Chat with a Gemini-powered AI that dynamically queries past decisions using semantic search.
@@ -14,23 +65,6 @@ SentientOS is an intelligent platform designed to act as your team's autonomous 
 - **Documents Library (RAG)**: Drag and drop `.pdf`, `.docx`, or `.txt` files. SentientOS automatically chunks and embeds the text, allowing the AI to answer questions directly from your documentation.
 - **Daily Standup Summarizer**: The AI automatically reads all system logs, events, and memories to generate a daily standup report of what happened across your engineering organization.
 - **ADR & Bug Tracking**: Auto-generates Architecture Decision Records (ADRs) and actively tracks system bugs based on ingestion pipelines.
-
----
-
-## 🏗️ Architecture Stack
-
-**Frontend (Client)**:
-- React + Vite
-- React Router DOM
-- Global Light/Dark Theme System (Glassmorphic Design)
-- Recharts for Real-Time Analytics Dashboard
-
-**Backend (Server)**:
-- Python FastAPI (Port 3002)
-- MongoDB Atlas (Persistent Storage for Users, Uploads, Agent Logs)
-- Parcle AI Vector Database (Long-Term Semantic Memory)
-- Google Gemini SDK (`google-genai` / `gemini-2.5-flash`)
-- `pypdf` & `python-docx` for Document Ingestion
 
 ---
 
